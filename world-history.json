@@ -1,0 +1,160 @@
+[
+  {
+    "repo_url": "https://github.com/apple/container",
+    "world_name": "The Territorial Grid",
+    "genre": "cyberpunk",
+    "tagline": "Where digital claims carve reality into ownable fragments",
+    "created_at": "2026-03-14T23:30:58.539Z",
+    "chapters": [
+      {
+        "title": "Genesis Grid",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/9ba3aa33-1fdf-4d0c-956d-bed7f8f82938",
+        "pano_url": "https://cdn.marble.worldlabs.ai/9ba3aa33-1fdf-4d0c-956d-bed7f8f82938/145a5288-e98d-4062-9192-f8f26d9e9f91_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/9ba3aa33-1fdf-4d0c-956d-bed7f8f82938/25122cf8-f99e-4bd3-a4c5-6ce8474c64c2_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "The First Survey",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/897c9713-86a6-42fd-8aa6-13ef3a778064",
+        "pano_url": "https://cdn.marble.worldlabs.ai/897c9713-86a6-42fd-8aa6-13ef3a778064/98320270-8f8a-4d2e-9add-62aaa95a5130_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/897c9713-86a6-42fd-8aa6-13ef3a778064/73f2c5a0-21a2-4656-8f64-dedefcde2c19_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/V4C38/mit-stairway-hackers",
+    "world_name": "The Territorial Grid",
+    "genre": "cyberpunk",
+    "tagline": "Where digital claims carve reality into ownable fragments",
+    "created_at": "2026-03-14T23:30:58.539Z",
+    "chapters": [
+      {
+        "title": "Genesis Grid",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/d4edd4d2-1e80-4acb-8ad7-0f67d8bb3047",
+        "pano_url": "https://cdn.marble.worldlabs.ai/d4edd4d2-1e80-4acb-8ad7-0f67d8bb3047/b7b53c6c-bdcf-4cea-a5df-c16b4e164f41_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/d4edd4d2-1e80-4acb-8ad7-0f67d8bb3047/dc4c9bfb-606b-4bce-a859-44484b9ec44a_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "The First Survey",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/d599be3c-081b-4d0c-a149-5a3bd6644d5b",
+        "pano_url": "https://cdn.marble.worldlabs.ai/d599be3c-081b-4d0c-a149-5a3bd6644d5b/2a9c338e-aa44-4136-a200-1daec10c1431_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/d599be3c-081b-4d0c-a149-5a3bd6644d5b/056bcf94-d4ff-4f26-b5a4-1ad7ffe60b7d_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/V4C38/ue5-xrcore",
+    "world_name": "The Territorial Grid",
+    "genre": "cyberpunk",
+    "tagline": "Where digital claims carve reality into ownable fragments",
+    "created_at": "2026-03-14T23:30:58.539Z",
+    "chapters": [
+      {
+        "title": "Genesis Grid",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/c096676d-5e28-4af8-ace9-b1b3ef86039c",
+        "pano_url": "https://cdn.marble.worldlabs.ai/c096676d-5e28-4af8-ace9-b1b3ef86039c/3c0f818f-6903-442d-93c1-4112f75f1e86_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/c096676d-5e28-4af8-ace9-b1b3ef86039c/45774e55-26e4-474f-8fdc-b07548534ca4_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "The First Survey",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/055befae-e932-44bb-bbeb-770e8f419d3a",
+        "pano_url": "https://cdn.marble.worldlabs.ai/055befae-e932-44bb-bbeb-770e8f419d3a/d5245ed1-87b4-4fa5-8e13-c4e727bec81f_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/055befae-e932-44bb-bbeb-770e8f419d3a/4bcfb62e-e23e-4118-83c8-3028822465d7_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Wallet Bridges",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/527de2b9-20cd-4838-a334-153b3e8c4a0b",
+        "pano_url": "https://cdn.marble.worldlabs.ai/527de2b9-20cd-4838-a334-153b3e8c4a0b/cd6b2c7b-599b-4ad0-aaea-d785039b0914_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/527de2b9-20cd-4838-a334-153b3e8c4a0b/2b7a7e87-fdf6-4097-9100-7f32bfa68f06_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Territory Markers",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/eba8768e-d5f1-47b6-930e-ab48d3f7f5c3",
+        "pano_url": "https://cdn.marble.worldlabs.ai/eba8768e-d5f1-47b6-930e-ab48d3f7f5c3/de1f2e6c-f81d-4e94-8c37-dfe5efb6834f_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/eba8768e-d5f1-47b6-930e-ab48d3f7f5c3/a79980dc-0834-4702-b2c3-170569a0d1fc_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/davek-ai/ClearRead",
+    "world_name": "The Territorial Grid",
+    "genre": "cyberpunk",
+    "tagline": "Where digital claims carve reality into ownable fragments",
+    "created_at": "2026-03-14T23:30:58.539Z",
+    "chapters": [
+      {
+        "title": "Genesis Grid",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/4383bf9c-62f0-4ed6-abd0-2bda546d2e31",
+        "pano_url": "https://cdn.marble.worldlabs.ai/4383bf9c-62f0-4ed6-abd0-2bda546d2e31/f9e487b6-fe8f-4b67-94e6-d6ff1dadc94a_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/4383bf9c-62f0-4ed6-abd0-2bda546d2e31/5d9a8b3e-464c-46d2-80d1-03e5549df9f1_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "The First Survey",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/165afe25-e5b3-4edd-8b3e-eb1903ec82ca",
+        "pano_url": "https://cdn.marble.worldlabs.ai/165afe25-e5b3-4edd-8b3e-eb1903ec82ca/5b57e528-44f1-4be7-9103-f8a7193824ef_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/165afe25-e5b3-4edd-8b3e-eb1903ec82ca/455ada01-c3f4-4eb1-8417-c04c952f71a7_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Wallet Bridges",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/7dbb67dd-7c64-4505-b32a-21effb165cac",
+        "pano_url": "https://cdn.marble.worldlabs.ai/7dbb67dd-7c64-4505-b32a-21effb165cac/6c878ae5-3ac1-4090-b10b-4069f4d4adf9_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/7dbb67dd-7c64-4505-b32a-21effb165cac/7488879e-ffab-4f3e-8f66-9d35b433720d_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/davek-ai/APEMap",
+    "world_name": "The Territorial Grid",
+    "genre": "cyberpunk",
+    "tagline": "Where digital claims carve reality into ownable fragments",
+    "created_at": "2026-03-14T23:30:58.539Z",
+    "chapters": [
+      {
+        "title": "Genesis Grid",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/fa71e6d0-b66e-431d-854b-d1564d180c65",
+        "pano_url": "https://cdn.marble.worldlabs.ai/fa71e6d0-b66e-431d-854b-d1564d180c65/b1b577a5-419a-4d5f-a07c-fd7926979ce6_panos/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/fa71e6d0-b66e-431d-854b-d1564d180c65/6b6af637-fcaf-41e6-981b-3c849d37673c_dust_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/davek-ai/Supabase-Edge-Function-x402",
+    "world_name": "The Payment Gates",
+    "genre": "cyberpunk",
+    "tagline": "Where digital value flows through temporal barriers",
+    "created_at": "2026-03-14T23:24:06.409Z",
+    "chapters": [
+      {
+        "title": "The First Checkpoint",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/c892e208-8fdc-42a2-a4f4-1af76c843a42",
+        "pano_url": "https://cdn.marble.worldlabs.ai/c892e208-8fdc-42a2-a4f4-1af76c843a42/4255a106-2b93-4cc3-a3cb-a31b205ee808_panos/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/c892e208-8fdc-42a2-a4f4-1af76c843a42/4ae3bed8-f7c9-475b-b956-57803ae4e5ca_dust_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  }
+]

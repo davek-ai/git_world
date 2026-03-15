@@ -1,0 +1,34 @@
+{
+  "name": "narrative-engine",
+  "version": "2.0.0",
+  "description": "Every repo gets its own cinematic intro — Narrative Engine v2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/server.ts",
+    "dev": "tsx --watch src/server.ts",
+    "watch": "tsx src/cli.ts watch",
+    "generate": "tsx src/cli.ts generate",
+    "viewer": "vite src/viewer --open",
+    "viewer:build": "vite build src/viewer"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@sparkjsdev/spark": "github:sparkjsdev/spark#v2.0.0-preview",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.0",
+    "octokit": "^4.1.0",
+    "three": "npm:super-three@0.181.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/three": "^0.181.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.0",
+    "vite": "^7.1.4"
+  }
+}

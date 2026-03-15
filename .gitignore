@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+world-state.json
+story-bible.json
+manifest.json
+*.spz
+*.log

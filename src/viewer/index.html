@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Narrative Engine — World Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'SF Mono', 'Fira Code', monospace; color: #eee; }
+    #canvas { width: 100%; height: 100%; display: block; position: fixed; top: 0; left: 0; }
+
+    /* ─── Intro overlay ──────────────────────────────── */
+    #intro-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #000; display: flex; align-items: center; justify-content: center;
+      z-index: 100; transition: opacity 1.5s ease;
+    }
+    #intro-overlay.fade-out { opacity: 0; pointer-events: none; }
+    #intro-overlay .intro-text { text-align: center; }
+    #intro-overlay h1 { font-size: 36px; letter-spacing: 3px; margin-bottom: 8px; }
+    #intro-overlay p { font-size: 16px; color: #666; }
+    .connecting { animation: pulse 1.5s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    /* ─── Chapter title card ─────────────────────────── */
+    #chapter-card {
+      position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; z-index: 50; pointer-events: none;
+      opacity: 0; transition: opacity 0.8s ease;
+    }
+    #chapter-card.visible { opacity: 1; }
+    #chapter-card .type { font-size: 14px; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
+    #chapter-card .title { font-size: 42px; font-weight: 700; letter-spacing: 2px; margin-bottom: 12px; }
+    #chapter-card .line { width: 200px; height: 2px; margin: 0 auto; }
+    #chapter-card .counter { font-size: 13px; color: #666; margin-top: 10px; }
+
+    /* ─── HUD ────────────────────────────────────────── */
+    #hud {
+      position: fixed; bottom: 24px; left: 24px; z-index: 20;
+      max-width: 400px;
+    }
+    #hud .world-name { font-size: 22px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+    #hud .tagline { font-size: 14px; color: #999; margin-bottom: 12px; font-style: italic; }
+    #hud .chapter { font-size: 15px; color: #ccc; margin-bottom: 2px; }
+    #hud .genre { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
+    #hud .status { margin-top: 8px; font-size: 12px; }
+    .repo-link {
+      font-size: 12px; color: #6688cc; text-decoration: none; margin-bottom: 8px;
+      display: none; transition: color 0.15s;
+    }
+    .repo-link:hover { color: #88aaee; text-decoration: underline; }
+    .repo-link.visible { display: block; }
+    .status-ready { color: #22cc66; }
+    .status-generating { color: #ddaa22; }
+    .status-failed { color: #dd4422; }
+
+    /* ─── Bottom bar: chapters + controls ─────────────── */
+    #bottom-bar {
+      position: fixed; bottom: 24px; right: 24px; z-index: 20;
+      display: flex; gap: 12px; align-items: center;
+    }
+    #bottom-bar button {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: #ccc; padding: 8px 16px; font-size: 13px; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+    }
+    #bottom-bar button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    #bottom-bar button.active { border-color: #22cc66; color: #22cc66; }
+    #bottom-bar button:disabled { opacity: 0.3; cursor: default; }
+
+    /* ─── Playback progress bar ──────────────────────── */
+    #playback-bar {
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 3px;
+      background: rgba(255,255,255,0.05); z-index: 30; display: none;
+    }
+    #playback-bar.show { display: block; }
+    #playback-fill {
+      height: 100%; width: 0%; transition: width 0.3s linear;
+    }
+
+    /* ─── Chapter timeline drawer ─────────────────────── */
+    #timeline {
+      position: fixed; bottom: 70px; right: 24px; z-index: 25;
+      background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px); max-height: 60vh; overflow-y: auto;
+      width: 320px; display: none; padding: 0;
+    }
+    #timeline.show { display: block; }
+    #timeline .tl-header {
+      padding: 14px 16px 10px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 2px; color: #666; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .tl-item {
+      padding: 12px 16px; cursor: pointer; transition: background 0.15s;
+      border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 12px; align-items: center;
+    }
+    .tl-item:hover { background: rgba(255,255,255,0.05); }
+    .tl-item.active { background: rgba(255,255,255,0.08); }
+    .tl-item.disabled { opacity: 0.3; cursor: default; }
+    .tl-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .tl-info { flex: 1; min-width: 0; }
+    .tl-title { font-size: 13px; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tl-meta { font-size: 11px; color: #666; margin-top: 2px; }
+
+    /* ─── Gallery (previous worlds) ─────────────────── */
+    #gallery {
+      position: fixed; top: 60px; right: 24px; z-index: 25;
+      background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px); max-height: 70vh; overflow-y: auto;
+      width: 340px; display: none; padding: 0;
+    }
+    #gallery.show { display: block; }
+    #gallery .gal-header {
+      padding: 14px 16px 10px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 2px; color: #666; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .gal-item {
+      padding: 12px 16px; cursor: pointer; transition: background 0.15s;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .gal-item:hover { background: rgba(255,255,255,0.05); }
+    .gal-name { font-size: 14px; color: #ddd; font-weight: 600; margin-bottom: 2px; }
+    .gal-tag { font-size: 12px; color: #888; font-style: italic; margin-bottom: 4px; }
+    .gal-meta { font-size: 11px; color: #555; display: flex; gap: 8px; }
+    .gal-chapters { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+    .gal-chapters a {
+      font-size: 11px; color: #6688cc; text-decoration: none; padding: 2px 6px;
+      border: 1px solid rgba(102,136,204,0.3); transition: all 0.15s;
+    }
+    .gal-chapters a:hover { background: rgba(102,136,204,0.15); color: #88aaee; }
+    .gal-empty { padding: 20px 16px; color: #555; font-size: 13px; text-align: center; }
+
+    /* ─── Top bar ────────────────────────────────────── */
+    #top-bar {
+      position: fixed; top: 24px; right: 24px; z-index: 20;
+      display: flex; gap: 10px; align-items: center;
+    }
+    #top-bar a, #top-bar button {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: #ccc; padding: 8px 14px; font-size: 12px; text-decoration: none;
+      font-family: inherit; transition: all 0.2s; cursor: pointer;
+    }
+    #top-bar a:hover, #top-bar button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* ─── Repo input modal ───────────────────────────── */
+    #repo-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 300;
+    }
+    #repo-modal.show { display: flex; }
+    #repo-modal-inner { text-align: center; width: 560px; max-width: 90vw; }
+    #repo-modal-inner h2 { font-size: 18px; font-weight: 600; letter-spacing: 1px; margin-bottom: 16px; }
+    #repo-modal-inner input[type="text"] {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; padding: 14px 20px; font-size: 16px; width: 100%;
+      font-family: inherit; outline: none; text-align: center;
+    }
+    #repo-modal-inner input::placeholder { color: #555; }
+    #repo-modal-inner input:focus { border-color: #22cc66; }
+    .modal-hint { color: #444; font-size: 12px; margin-top: 8px; }
+    .modal-row {
+      display: flex; gap: 12px; align-items: center; justify-content: center;
+      margin-top: 16px;
+    }
+    .modal-row label { color: #888; font-size: 13px; }
+    .chapter-selector {
+      display: flex; gap: 4px;
+    }
+    .chapter-selector button {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+      color: #888; width: 36px; height: 36px; font-size: 14px; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .chapter-selector button:hover { background: rgba(255,255,255,0.12); color: #ccc; }
+    .chapter-selector button.selected { border-color: #22cc66; color: #22cc66; background: rgba(34,204,102,0.1); }
+    .model-selector { gap: 50px !important; }
+    .model-selector button { padding: 12px 28px; font-size: 13px; white-space: nowrap; width: auto; }
+    .modal-status { color: #ddaa22; font-size: 13px; margin-top: 12px; min-height: 20px; }
+    #repo-modal .close-btn {
+      position: absolute; top: 24px; right: 24px;
+      background: none; border: none; color: #666; font-size: 24px; cursor: pointer;
+    }
+    #repo-modal .close-btn:hover { color: #fff; }
+
+    /* ─── Controls hint ──────────────────────────────── */
+    #controls-hint {
+      position: fixed; top: 24px; left: 24px; z-index: 20;
+      font-size: 11px; color: #444; line-height: 1.6;
+    }
+    #controls-hint span { color: #666; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div id="intro-overlay">
+    <div class="intro-text">
+      <h1 id="intro-title">NARRATIVE ENGINE</h1>
+      <p id="intro-sub" class="connecting">connecting...</p>
+    </div>
+  </div>
+
+  <div id="chapter-card">
+    <div class="type" id="card-type"></div>
+    <div class="title" id="card-title"></div>
+    <div class="line" id="card-line"></div>
+    <div class="counter" id="card-counter"></div>
+  </div>
+
+  <div id="hud">
+    <div class="world-name" id="hud-name"></div>
+    <div class="tagline" id="hud-tagline"></div>
+    <a class="repo-link" id="hud-repo" href="#" target="_blank" rel="noopener"></a>
+    <div class="chapter" id="hud-chapter"></div>
+    <div class="genre" id="hud-genre"></div>
+    <div class="status" id="hud-status"></div>
+  </div>
+
+  <div id="controls-hint">
+    <span>W/S</span> forward/back &nbsp; <span>A/D</span> strafe &nbsp; <span>Q/E</span> up/down<br>
+    <span>drag</span> look &nbsp; <span>scroll</span> zoom &nbsp; <span>F</span> fly
+  </div>
+
+  <div id="top-bar">
+    <button id="btn-gallery" title="Previous worlds">Worlds</button>
+    <button id="btn-new-repo" title="Generate world for a new repo">+ New Repo</button>
+    <a id="marble-link" target="_blank" rel="noopener" style="display:none">Marble 3D</a>
+  </div>
+
+  <div id="gallery">
+    <div class="gal-header">Previous Worlds</div>
+    <div id="gal-items"></div>
+  </div>
+
+  <div id="bottom-bar">
+    <button id="btn-prev" title="Previous chapter">&larr;</button>
+    <button id="btn-fly" title="Auto-fly cinematic camera">Fly</button>
+    <button id="btn-play" title="Auto-play all chapters">Play All</button>
+    <button id="btn-next" title="Next chapter">&rarr;</button>
+    <button id="btn-timeline" title="Chapter list">Chapters</button>
+  </div>
+
+  <div id="playback-bar"><div id="playback-fill"></div></div>
+
+  <div id="timeline">
+    <div class="tl-header">Chapters</div>
+    <div id="tl-items"></div>
+  </div>
+
+  <!-- Repo input modal (always accessible) -->
+  <div id="repo-modal">
+    <button class="close-btn" id="modal-close">&times;</button>
+    <div id="repo-modal-inner">
+      <h2>NEW WORLD</h2>
+      <input id="repo-input" type="text" placeholder="paste a GitHub repo URL" autofocus />
+      <div class="modal-hint">e.g. https://github.com/owner/repo</div>
+      <div class="modal-row">
+        <label>Chapters:</label>
+        <div class="chapter-selector" id="chapter-selector">
+          <button data-n="1">1</button>
+          <button data-n="2">2</button>
+          <button data-n="3" class="selected">3</button>
+          <button data-n="4">4</button>
+          <button data-n="5">5</button>
+          <button data-n="6">6</button>
+          <button data-n="8">8</button>
+        </div>
+      </div>
+      <div class="modal-row">
+        <label>Model:</label>
+        <div class="chapter-selector model-selector" id="model-selector">
+          <button data-m="Marble 0.1-mini" class="selected">Mini (fast, cheaper)</button>
+          <button data-m="Marble 0.1-plus">Plus (high quality)</button>
+        </div>
+      </div>
+      <div class="modal-status" id="modal-status"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.170.0",
+      "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    // ─── State ────────────────────────────────────────
+    let bible = null;
+    let chapters = [];
+    let currentChapter = -1;
+    let panoMesh = null;
+    let particles = null;
+    let sparkParticles = null;
+    let ringParticles = null;
+    let generatingState = "idle"; // "idle" | "analyzing" | "generating" | "ready"
+    let genTransition = 0; // 0 = idle, 1 = full generating intensity
+    let isPlaying = false;
+    let playTimer = null;
+    let playProgress = 0;
+    let playStartTime = 0;
+    const PLAY_INTERVAL = 8000; // 8 seconds per chapter
+    let timelineOpen = false;
+    let selectedChapterCount = 3;
+    let selectedModel = "Marble 0.1-mini";
+    let currentRepoUrl = "";
+
+    // ─── DOM refs ─────────────────────────────────────
+    const canvas = document.getElementById("canvas");
+    const introOverlay = document.getElementById("intro-overlay");
+    const introTitle = document.getElementById("intro-title");
+    const introSub = document.getElementById("intro-sub");
+    const hudName = document.getElementById("hud-name");
+    const hudTagline = document.getElementById("hud-tagline");
+    const hudChapter = document.getElementById("hud-chapter");
+    const hudRepo = document.getElementById("hud-repo");
+    const hudGenre = document.getElementById("hud-genre");
+    const hudStatus = document.getElementById("hud-status");
+    const marbleLink = document.getElementById("marble-link");
+    const chapterCard = document.getElementById("chapter-card");
+    const cardType = document.getElementById("card-type");
+    const cardTitle = document.getElementById("card-title");
+    const cardLine = document.getElementById("card-line");
+    const cardCounter = document.getElementById("card-counter");
+    const repoModal = document.getElementById("repo-modal");
+    const repoInput = document.getElementById("repo-input");
+    const modalStatus = document.getElementById("modal-status");
+    const modalClose = document.getElementById("modal-close");
+    const chapterSelector = document.getElementById("chapter-selector");
+    const btnNewRepo = document.getElementById("btn-new-repo");
+
+    // Chapter count selector
+    chapterSelector.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-n]");
+      if (!btn) return;
+      chapterSelector.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedChapterCount = parseInt(btn.dataset.n);
+    });
+
+    // Model selector
+    const modelSelector = document.getElementById("model-selector");
+    modelSelector.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-m]");
+      if (!btn) return;
+      modelSelector.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedModel = btn.dataset.m;
+    });
+
+    const btnPrev = document.getElementById("btn-prev");
+    const btnPlay = document.getElementById("btn-play");
+    const btnNext = document.getElementById("btn-next");
+    const btnTimeline = document.getElementById("btn-timeline");
+    const timelineEl = document.getElementById("timeline");
+    const tlItems = document.getElementById("tl-items");
+    const playbackBar = document.getElementById("playback-bar");
+    const playbackFill = document.getElementById("playback-fill");
+
+    // ─── Chapter type colors ──────────────────────────
+    const typeColors = {
+      genesis: "#4466aa",
+      growth: "#22cc66",
+      crisis: "#dd4422",
+      resolution: "#ddaa22",
+      maturity: "#8866cc",
+      live_push: "#22ddcc",
+    };
+
+    // ─── Three.js setup ───────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050510);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 1.0, 0.01);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.zoomSpeed = 0.5;
+    controls.rotateSpeed = -0.25;
+    controls.enablePan = false;
+    controls.minDistance = 0.1;
+    controls.maxDistance = 100;
+    controls.target.set(0, 1.0, -1);
+
+    // Auto-rotate during playback
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.4;
+
+    // ─── WASD movement ──────────────────────────────
+    const moveKeys = { w: false, a: false, s: false, d: false, q: false, e: false };
+    const MOVE_SPEED = 0.2;
+
+    window.addEventListener("keydown", (e) => {
+      const k = e.key.toLowerCase();
+      if (k in moveKeys) moveKeys[k] = true;
+    });
+    window.addEventListener("keyup", (e) => {
+      const k = e.key.toLowerCase();
+      if (k in moveKeys) moveKeys[k] = false;
+    });
+
+    function updateWASD() {
+      if (autoFlying) return; // don't fight the fly camera
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
+
+      if (moveKeys.w) { camera.position.addScaledVector(dir, MOVE_SPEED); controls.target.addScaledVector(dir, MOVE_SPEED); }
+      if (moveKeys.s) { camera.position.addScaledVector(dir, -MOVE_SPEED); controls.target.addScaledVector(dir, -MOVE_SPEED); }
+      if (moveKeys.a) { camera.position.addScaledVector(right, -MOVE_SPEED); controls.target.addScaledVector(right, -MOVE_SPEED); }
+      if (moveKeys.d) { camera.position.addScaledVector(right, MOVE_SPEED); controls.target.addScaledVector(right, MOVE_SPEED); }
+      if (moveKeys.q) { camera.position.y += MOVE_SPEED; controls.target.y += MOVE_SPEED; }
+      if (moveKeys.e) { camera.position.y -= MOVE_SPEED; controls.target.y -= MOVE_SPEED; }
+    }
+
+    // ─── Auto-fly cinematic camera ──────────────────
+    let autoFlying = false;
+    let flyWaypoints = [];
+    let flyIndex = 0;
+    let flyT = 0;
+    const FLY_SPEED = 0.003; // how fast we move between waypoints
+    const btnFly = document.getElementById("btn-fly");
+
+    function generateFlyPath() {
+      // Generate 8-12 random waypoints in a sphere around the world center
+      const count = 8 + Math.floor(Math.random() * 5);
+      const points = [];
+      for (let i = 0; i < count; i++) {
+        const theta = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const phi = 0.3 + Math.random() * 1.2; // stay above ground, not too high
+        const r = 1.5 + Math.random() * 3.5;
+        points.push(new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          0.4 + Math.abs(Math.cos(phi)) * 2.5, // height 0.4 to 2.9
+          r * Math.sin(phi) * Math.sin(theta)
+        ));
+      }
+      return points;
+    }
+
+    function startAutoFly() {
+      autoFlying = true;
+      flyWaypoints = generateFlyPath();
+      flyIndex = 0;
+      flyT = 0;
+      btnFly.classList.add("active");
+      btnFly.textContent = "Stop Fly";
+    }
+
+    function stopAutoFly() {
+      autoFlying = false;
+      btnFly.classList.remove("active");
+      btnFly.textContent = "Fly";
+    }
+
+    function updateAutoFly() {
+      if (!autoFlying || flyWaypoints.length < 2) return;
+
+      flyT += FLY_SPEED;
+      if (flyT >= 1) {
+        flyT = 0;
+        flyIndex = (flyIndex + 1) % flyWaypoints.length;
+      }
+
+      const from = flyWaypoints[flyIndex];
+      const to = flyWaypoints[(flyIndex + 1) % flyWaypoints.length];
+      const next = flyWaypoints[(flyIndex + 2) % flyWaypoints.length];
+
+      // Smooth cubic interpolation (Catmull-Rom style)
+      const t = flyT;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const ease = t3 * (6 * t2 - 15 * t + 10); // smootherstep
+
+      // Position: lerp with easing
+      camera.position.lerpVectors(from, to, ease);
+
+      // Look target: blend between current destination and next for smooth turns
+      const lookTarget = new THREE.Vector3().lerpVectors(to, next, ease * 0.5);
+      // Slight offset so we're looking ahead, not at our feet
+      lookTarget.y = Math.max(lookTarget.y, 0.5);
+      controls.target.lerp(lookTarget, 0.05);
+    }
+
+    btnFly.addEventListener("click", () => {
+      if (autoFlying) stopAutoFly();
+      else startAutoFly();
+    });
+
+    // 'F' key also toggles fly
+    window.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "f" && !repoModal.classList.contains("show")) {
+        if (autoFlying) stopAutoFly();
+        else startAutoFly();
+      }
+    });
+
+    createParticles();
+
+    // ─── Panorama loader ──────────────────────────────
+    const textureLoader = new THREE.TextureLoader();
+
+    function loadPanorama(url) {
+      return new Promise((resolve, reject) => {
+        textureLoader.load(url, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.mapping = THREE.EquirectangularReflectionMapping;
+
+          if (panoMesh) {
+            scene.remove(panoMesh);
+            panoMesh.geometry.dispose();
+            panoMesh.material.dispose();
+          }
+
+          const geo = new THREE.SphereGeometry(50, 64, 32);
+          geo.scale(-1, 1, 1);
+          const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
+          panoMesh = new THREE.Mesh(geo, mat);
+          scene.add(panoMesh);
+
+          const start = performance.now();
+          function fadeIn() {
+            const t = Math.min((performance.now() - start) / 1500, 1);
+            mat.opacity = t * t;
+            if (t < 1) requestAnimationFrame(fadeIn);
+          }
+          fadeIn();
+          resolve();
+        }, undefined, reject);
+      });
+    }
+
+    // ─── Particle Systems ──────────────────────────────
+    // 1. Ambient dust (always present, speeds up when generating)
+    // 2. Spark streaks (only during generation — fast bright lines converging to center)
+    // 3. Orbital ring (only during generation — swirling ring of particles)
+
+    function createParticles() {
+      // --- Ambient dust (800 particles, gentle float) ---
+      const dustCount = 800;
+      const dustPos = new Float32Array(dustCount * 3);
+      const dustVel = [];
+      const dustHome = []; // home positions for convergence
+      for (let i = 0; i < dustCount; i++) {
+        const x = (Math.random() - 0.5) * 80;
+        const y = (Math.random() - 0.5) * 80;
+        const z = (Math.random() - 0.5) * 80;
+        dustPos[i * 3] = x;
+        dustPos[i * 3 + 1] = y;
+        dustPos[i * 3 + 2] = z;
+        dustVel.push(
+          (Math.random() - 0.5) * 0.008,
+          Math.random() * 0.01 + 0.003,
+          (Math.random() - 0.5) * 0.008
+        );
+        dustHome.push(x, y, z);
+      }
+      const dustGeo = new THREE.BufferGeometry();
+      dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+      const dustMat = new THREE.PointsMaterial({
+        color: 0x6688cc, size: 0.12, transparent: true, opacity: 0.25,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      });
+      particles = new THREE.Points(dustGeo, dustMat);
+      particles._velocities = dustVel;
+      particles._home = dustHome;
+      scene.add(particles);
+
+      // --- Spark streaks (600 particles, hidden until generating) ---
+      const sparkCount = 600;
+      const sparkPos = new Float32Array(sparkCount * 3);
+      const sparkVel = [];
+      const sparkLife = []; // per-particle lifecycle phase
+      for (let i = 0; i < sparkCount; i++) {
+        // Start from random shell around origin
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        const r = 30 + Math.random() * 40;
+        sparkPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        sparkPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        sparkPos[i * 3 + 2] = r * Math.cos(phi);
+        sparkVel.push(0, 0, 0); // computed each frame
+        sparkLife.push(Math.random()); // stagger start
+      }
+      const sparkGeo = new THREE.BufferGeometry();
+      sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPos, 3));
+      const sparkMat = new THREE.PointsMaterial({
+        color: 0xffdd66, size: 0.08, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      });
+      sparkParticles = new THREE.Points(sparkGeo, sparkMat);
+      sparkParticles._velocities = sparkVel;
+      sparkParticles._life = sparkLife;
+      scene.add(sparkParticles);
+
+      // --- Orbital ring (300 particles, swirl around center) ---
+      const ringCount = 300;
+      const ringPos = new Float32Array(ringCount * 3);
+      const ringPhase = []; // orbital angle per particle
+      const ringRadius = [];
+      const ringSpeed = [];
+      const ringY = [];
+      for (let i = 0; i < ringCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const rad = 8 + Math.random() * 15;
+        const y = (Math.random() - 0.5) * 6;
+        ringPos[i * 3] = Math.cos(angle) * rad;
+        ringPos[i * 3 + 1] = y;
+        ringPos[i * 3 + 2] = Math.sin(angle) * rad;
+        ringPhase.push(angle);
+        ringRadius.push(rad);
+        ringSpeed.push(0.003 + Math.random() * 0.008);
+        ringY.push(y);
+      }
+      const ringGeo = new THREE.BufferGeometry();
+      ringGeo.setAttribute("position", new THREE.BufferAttribute(ringPos, 3));
+      const ringMat = new THREE.PointsMaterial({
+        color: 0x22ccff, size: 0.1, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      });
+      ringParticles = new THREE.Points(ringGeo, ringMat);
+      ringParticles._phase = ringPhase;
+      ringParticles._radius = ringRadius;
+      ringParticles._speed = ringSpeed;
+      ringParticles._y = ringY;
+      scene.add(ringParticles);
+    }
+
+    function setGeneratingState(state) {
+      generatingState = state;
+    }
+
+    function animateParticles() {
+      const time = performance.now() * 0.001;
+
+      // Smooth transition toward target intensity
+      const targetIntensity = (generatingState === "generating" || generatingState === "analyzing") ? 1 : 0;
+      genTransition += (targetIntensity - genTransition) * 0.02;
+
+      // --- Ambient dust ---
+      if (particles) {
+        const pos = particles.geometry.attributes.position;
+        const arr = pos.array;
+        const vel = particles._velocities;
+        const home = particles._home;
+        const speedMult = 1 + genTransition * 4; // 1x idle → 5x generating
+
+        for (let i = 0; i < arr.length / 3; i++) {
+          const i3 = i * 3;
+          // Base drift
+          arr[i3] += vel[i3] * speedMult;
+          arr[i3 + 1] += vel[i3 + 1] * speedMult;
+          arr[i3 + 2] += vel[i3 + 2] * speedMult;
+
+          // When generating: slight pull toward center (convergence)
+          if (genTransition > 0.01) {
+            const pull = genTransition * 0.0008;
+            arr[i3] -= arr[i3] * pull;
+            arr[i3 + 1] -= arr[i3 + 1] * pull;
+            arr[i3 + 2] -= arr[i3 + 2] * pull;
+          }
+
+          // Boundary wrap
+          if (Math.abs(arr[i3 + 1]) > 40) arr[i3 + 1] *= -0.95;
+          if (Math.abs(arr[i3]) > 50) arr[i3] *= -0.95;
+          if (Math.abs(arr[i3 + 2]) > 50) arr[i3 + 2] *= -0.95;
+        }
+        pos.needsUpdate = true;
+
+        // Dust gets brighter + slightly larger when generating
+        particles.material.opacity = 0.25 + genTransition * 0.35;
+        particles.material.size = 0.12 + genTransition * 0.08;
+      }
+
+      // --- Spark streaks (converge to center during generation) ---
+      if (sparkParticles) {
+        const sparkPos = sparkParticles.geometry.attributes.position;
+        const sparkArr = sparkPos.array;
+        const sparkLife = sparkParticles._life;
+        const sparkCount = sparkArr.length / 3;
+
+        sparkParticles.material.opacity = genTransition * 0.7;
+
+        for (let i = 0; i < sparkCount; i++) {
+          const i3 = i * 3;
+          sparkLife[i] += 0.004 + genTransition * 0.012;
+
+          if (sparkLife[i] > 1) {
+            // Respawn from random shell
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const r = 25 + Math.random() * 35;
+            sparkArr[i3] = r * Math.sin(phi) * Math.cos(theta);
+            sparkArr[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            sparkArr[i3 + 2] = r * Math.cos(phi);
+            sparkLife[i] = 0;
+          }
+
+          // Pull toward origin (streaking inward)
+          const speed = 0.02 + genTransition * 0.06;
+          sparkArr[i3] -= sparkArr[i3] * speed;
+          sparkArr[i3 + 1] -= sparkArr[i3 + 1] * speed;
+          sparkArr[i3 + 2] -= sparkArr[i3 + 2] * speed;
+
+          // Slight spiral
+          const spiral = 0.015 * genTransition;
+          const sx = sparkArr[i3];
+          const sz = sparkArr[i3 + 2];
+          sparkArr[i3] = sx * Math.cos(spiral) - sz * Math.sin(spiral);
+          sparkArr[i3 + 2] = sx * Math.sin(spiral) + sz * Math.cos(spiral);
+        }
+        sparkPos.needsUpdate = true;
+      }
+
+      // --- Orbital ring (swirling around center) ---
+      if (ringParticles) {
+        const ringPos = ringParticles.geometry.attributes.position;
+        const ringArr = ringPos.array;
+        const phase = ringParticles._phase;
+        const radius = ringParticles._radius;
+        const speed = ringParticles._speed;
+        const yArr = ringParticles._y;
+        const ringCount = ringArr.length / 3;
+
+        ringParticles.material.opacity = genTransition * 0.5;
+
+        // Ring shrinks toward center as generation progresses
+        const radiusMult = 1 - genTransition * 0.3;
+
+        for (let i = 0; i < ringCount; i++) {
+          const i3 = i * 3;
+          phase[i] += speed[i] * (1 + genTransition * 3);
+          const r = radius[i] * radiusMult;
+          ringArr[i3] = Math.cos(phase[i]) * r;
+          ringArr[i3 + 1] = yArr[i] + Math.sin(time * 0.5 + i) * 1.5 * genTransition;
+          ringArr[i3 + 2] = Math.sin(phase[i]) * r;
+        }
+        ringPos.needsUpdate = true;
+      }
+    }
+
+    // ─── SSE connection ───────────────────────────────
+    const apiBase = window.location.origin;
+    const evtSource = new EventSource(`${apiBase}/api/events`);
+
+    evtSource.addEventListener("connected", () => {
+      introSub.textContent = "connected";
+      introSub.classList.remove("connecting");
+      fetchState();
+    });
+
+    evtSource.addEventListener("story_bible", (e) => {
+      bible = JSON.parse(e.data);
+      onBibleReady();
+      modalStatus.textContent = `"${bible.world_name}" — generating world...`;
+      setGeneratingState("analyzing");
+      // Color sparks to match palette
+      if (sparkParticles && bible.visual_palette) {
+        const accent = parseInt(bible.visual_palette.accent.replace("#", ""), 16);
+        sparkParticles.material.color.setHex(accent);
+      }
+    });
+
+    evtSource.addEventListener("chapter_start", (e) => {
+      const data = JSON.parse(e.data);
+      hudStatus.textContent = `generating "${data.title}"...`;
+      hudStatus.className = "status status-generating";
+      modalStatus.textContent = `generating "${data.title}"...`;
+      setGeneratingState("generating");
+    });
+
+    evtSource.addEventListener("chapter_ready", (e) => {
+      const data = JSON.parse(e.data);
+      hudStatus.textContent = "ready";
+      hudStatus.className = "status status-ready";
+      setGeneratingState("idle");
+      // Close modal if open
+      repoModal.classList.remove("show");
+      modalStatus.textContent = "";
+      fetchState().then(() => navigateToChapter(data.index));
+    });
+
+    evtSource.addEventListener("chapter_failed", (e) => {
+      const data = JSON.parse(e.data);
+      hudStatus.textContent = `failed: ${data.error}`;
+      hudStatus.className = "status status-failed";
+      setGeneratingState("idle");
+      modalStatus.textContent = `failed: ${data.error}`;
+      modalStatus.style.color = "#dd4422";
+    });
+
+    // ─── Fetch existing state ─────────────────────────
+    async function fetchState() {
+      try {
+        const res = await fetch(`${apiBase}/api/state`);
+        if (!res.ok) {
+          openRepoModal();
+          return;
+        }
+        const { state, bible: b } = await res.json();
+        if (state?.repo_url) { currentRepoUrl = state.repo_url; showRepoLink(currentRepoUrl); }
+        if (b && !bible) { bible = b; onBibleReady(); }
+        if (state?.chapters) {
+          chapters = state.chapters;
+          buildTimeline();
+          if (currentChapter < 0 && chapters.length > 0) {
+            const lastReady = [...chapters].reverse().findIndex(c => c.status === "ready");
+            const idx = lastReady >= 0 ? chapters.length - 1 - lastReady : -1;
+            if (idx >= 0) navigateToChapter(idx);
+          }
+        }
+      } catch {
+        openRepoModal();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  NEW REPO MODAL
+    // ═══════════════════════════════════════════════════
+    function openRepoModal() {
+      repoModal.classList.add("show");
+      repoInput.value = "";
+      modalStatus.textContent = "";
+      modalStatus.style.color = "#ddaa22";
+      setTimeout(() => repoInput.focus(), 100);
+    }
+
+    btnNewRepo.addEventListener("click", openRepoModal);
+    modalClose.addEventListener("click", () => repoModal.classList.remove("show"));
+
+    // ═══════════════════════════════════════════════════
+    //  GALLERY — previous worlds
+    // ═══════════════════════════════════════════════════
+    const btnGallery = document.getElementById("btn-gallery");
+    const galleryEl = document.getElementById("gallery");
+    const galItems = document.getElementById("gal-items");
+    let galleryOpen = false;
+
+    btnGallery.addEventListener("click", () => {
+      galleryOpen = !galleryOpen;
+      galleryEl.classList.toggle("show", galleryOpen);
+      btnGallery.classList.toggle("active", galleryOpen);
+      if (galleryOpen) loadGallery();
+    });
+
+    async function loadGallery() {
+      try {
+        const res = await fetch(`${apiBase}/api/history`);
+        const history = await res.json();
+        galItems.innerHTML = "";
+
+        if (history.length === 0) {
+          galItems.innerHTML = '<div class="gal-empty">No worlds yet. Generate one!</div>';
+          return;
+        }
+
+        for (const entry of history) {
+          const item = document.createElement("div");
+          item.className = "gal-item";
+
+          const readyChapters = entry.chapters.filter(c => c.status === "ready");
+          const repoShort = entry.repo_url.replace("https://github.com/", "");
+
+          let chaptersHtml = "";
+          for (const ch of entry.chapters) {
+            if (ch.marble_url) {
+              chaptersHtml += `<a href="${ch.marble_url}" target="_blank" title="${ch.title}">${ch.title}</a>`;
+            } else {
+              chaptersHtml += `<span style="font-size:11px;color:#444;padding:2px 6px">${ch.title}</span>`;
+            }
+          }
+
+          item.innerHTML = `
+            <div class="gal-name">${entry.world_name}</div>
+            <div class="gal-tag">${entry.tagline}</div>
+            <div class="gal-meta">
+              <a href="${entry.repo_url}" target="_blank" style="color:#6688cc;text-decoration:none" onclick="event.stopPropagation()">${repoShort}</a>
+              <span>${entry.genre}</span>
+              <span>${readyChapters.length} chapter${readyChapters.length !== 1 ? "s" : ""}</span>
+            </div>
+            <div class="gal-chapters">${chaptersHtml}</div>
+          `;
+
+          // Click to load this world's pano (first ready chapter)
+          const firstReady = entry.chapters.find(c => c.pano_url && c.status === "ready");
+          if (firstReady) {
+            item.style.cursor = "pointer";
+            item.addEventListener("click", (e) => {
+              if (e.target.tagName === "A") return; // Don't intercept marble links
+              loadPanorama(firstReady.pano_url);
+              hudName.textContent = entry.world_name;
+              hudTagline.textContent = entry.tagline;
+              showRepoLink(entry.repo_url);
+              hudGenre.textContent = entry.genre;
+              hudChapter.textContent = firstReady.title;
+              if (firstReady.marble_url) {
+                marbleLink.href = firstReady.marble_url;
+                marbleLink.style.display = "block";
+                marbleLink.textContent = "Marble 3D";
+              }
+              galleryEl.classList.remove("show");
+              galleryOpen = false;
+              btnGallery.classList.remove("active");
+            });
+          }
+
+          galItems.appendChild(item);
+        }
+      } catch {
+        galItems.innerHTML = '<div class="gal-empty">Could not load history</div>';
+      }
+    }
+
+    // ESC to close modal + gallery
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (repoModal.classList.contains("show")) repoModal.classList.remove("show");
+        if (galleryOpen) { galleryEl.classList.remove("show"); galleryOpen = false; btnGallery.classList.remove("active"); }
+      }
+    });
+
+    repoInput.addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+      const url = repoInput.value.trim();
+      if (!url.includes("github.com/")) {
+        modalStatus.textContent = "enter a valid GitHub URL";
+        modalStatus.style.color = "#dd4422";
+        return;
+      }
+
+      modalStatus.textContent = "initializing...";
+      modalStatus.style.color = "#ddaa22";
+
+      // Reset viewer state for new repo
+      bible = null;
+      chapters = [];
+      currentChapter = -1;
+      stopPlayback();
+      if (panoMesh) { scene.remove(panoMesh); panoMesh.geometry.dispose(); panoMesh.material.dispose(); panoMesh = null; }
+      scene.background = new THREE.Color(0x050510);
+      hudName.textContent = "";
+      hudTagline.textContent = "";
+      hudChapter.textContent = "";
+      hudGenre.textContent = "";
+      hudStatus.textContent = "";
+      marbleLink.style.display = "none";
+      tlItems.innerHTML = "";
+      introOverlay.style.display = "flex";
+      introOverlay.classList.remove("fade-out");
+      introTitle.textContent = "NARRATIVE ENGINE";
+      introSub.textContent = "analyzing repository...";
+      introSub.classList.add("connecting");
+      setGeneratingState("analyzing");
+
+      try {
+        await fetch(`${apiBase}/api/watch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repo_url: url, chapter_count: selectedChapterCount, model: selectedModel }),
+        });
+      } catch (err) {
+        modalStatus.textContent = `error: ${err.message}`;
+        modalStatus.style.color = "#dd4422";
+      }
+    });
+
+    // ─── Repo link helper ──────────────────────────────
+    function showRepoLink(url) {
+      if (!url) { hudRepo.classList.remove("visible"); return; }
+      const short = url.replace("https://github.com/", "");
+      hudRepo.textContent = short;
+      hudRepo.href = url;
+      hudRepo.classList.add("visible");
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  BIBLE READY
+    // ═══════════════════════════════════════════════════
+    function onBibleReady() {
+      if (!bible) return;
+
+      introTitle.textContent = bible.world_name.toUpperCase();
+      introSub.textContent = bible.tagline;
+      introSub.classList.remove("connecting");
+
+      hudName.textContent = bible.world_name;
+      hudTagline.textContent = bible.tagline;
+      hudGenre.textContent = `${bible.genre} / ${bible.subgenre}`;
+
+      const bg = parseInt(bible.visual_palette.primary.replace("#", ""), 16);
+      scene.background = new THREE.Color(bg).multiplyScalar(0.08);
+      if (particles) {
+        const accent = parseInt(bible.visual_palette.accent.replace("#", ""), 16);
+        particles.material.color.setHex(accent);
+      }
+
+      // Update playback bar color
+      const accentColor = bible.visual_palette.accent || "#22cc66";
+      playbackFill.style.background = accentColor;
+
+      setTimeout(() => {
+        introOverlay.classList.add("fade-out");
+        setTimeout(() => introOverlay.style.display = "none", 1500);
+      }, 2500);
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  CHAPTER TIMELINE (replaces simple nav buttons)
+    // ═══════════════════════════════════════════════════
+    function buildTimeline() {
+      tlItems.innerHTML = "";
+      const readyChapters = chapters.filter(c => c.status === "ready");
+
+      for (const ch of chapters) {
+        const item = document.createElement("div");
+        item.className = "tl-item" + (ch.chapter_index === currentChapter ? " active" : "") + (ch.status !== "ready" ? " disabled" : "");
+
+        const color = typeColors[ch.chapter_type] || "#666";
+        item.innerHTML = `
+          <div class="tl-dot" style="background:${color}"></div>
+          <div class="tl-info">
+            <div class="tl-title">${ch.chapter_index + 1}. ${ch.episode_title}</div>
+            <div class="tl-meta">${ch.chapter_type.replace("_"," ")} ${ch.status !== "ready" ? " — " + ch.status : ""}</div>
+          </div>
+        `;
+
+        if (ch.status === "ready") {
+          item.addEventListener("click", () => {
+            stopPlayback();
+            navigateToChapter(ch.chapter_index);
+            timelineEl.classList.remove("show");
+            timelineOpen = false;
+          });
+        }
+        tlItems.appendChild(item);
+      }
+    }
+
+    btnTimeline.addEventListener("click", () => {
+      timelineOpen = !timelineOpen;
+      timelineEl.classList.toggle("show", timelineOpen);
+      btnTimeline.classList.toggle("active", timelineOpen);
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  PLAYBACK — watch all chapters sequentially
+    // ═══════════════════════════════════════════════════
+    function getReadyChapters() {
+      return chapters.filter(c => c.status === "ready");
+    }
+
+    function startPlayback() {
+      const ready = getReadyChapters();
+      if (ready.length === 0) return;
+
+      isPlaying = true;
+      btnPlay.textContent = "Pause";
+      btnPlay.classList.add("active");
+      playbackBar.classList.add("show");
+      controls.autoRotate = true;
+      if (!autoFlying) startAutoFly(); // fly during playback
+
+      // Start from first chapter if none selected, or next chapter
+      const startIdx = currentChapter < 0 ? ready[0].chapter_index : currentChapter;
+      navigateToChapter(startIdx);
+      scheduleNextChapter();
+    }
+
+    function stopPlayback() {
+      isPlaying = false;
+      btnPlay.textContent = "Play All";
+      btnPlay.classList.remove("active");
+      playbackBar.classList.remove("show");
+      controls.autoRotate = false;
+      stopAutoFly();
+      if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+    }
+
+    function scheduleNextChapter() {
+      if (!isPlaying) return;
+      playStartTime = performance.now();
+
+      playTimer = setTimeout(() => {
+        if (!isPlaying) return;
+        const ready = getReadyChapters();
+        const currentReadyIdx = ready.findIndex(c => c.chapter_index === currentChapter);
+        const nextReadyIdx = (currentReadyIdx + 1) % ready.length;
+
+        // If we've looped back to start, stop
+        if (nextReadyIdx === 0 && currentReadyIdx === ready.length - 1) {
+          stopPlayback();
+          return;
+        }
+
+        navigateToChapter(ready[nextReadyIdx].chapter_index);
+        scheduleNextChapter();
+      }, PLAY_INTERVAL);
+    }
+
+    btnPlay.addEventListener("click", () => {
+      if (isPlaying) stopPlayback();
+      else startPlayback();
+    });
+
+    // ─── Prev / Next ──────────────────────────────────
+    btnPrev.addEventListener("click", () => {
+      stopPlayback();
+      const ready = getReadyChapters();
+      if (ready.length === 0) return;
+      const curIdx = ready.findIndex(c => c.chapter_index === currentChapter);
+      const prev = curIdx > 0 ? curIdx - 1 : ready.length - 1;
+      navigateToChapter(ready[prev].chapter_index);
+    });
+
+    btnNext.addEventListener("click", () => {
+      stopPlayback();
+      const ready = getReadyChapters();
+      if (ready.length === 0) return;
+      const curIdx = ready.findIndex(c => c.chapter_index === currentChapter);
+      const next = (curIdx + 1) % ready.length;
+      navigateToChapter(ready[next].chapter_index);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      if (repoModal.classList.contains("show")) return;
+      if (e.target.tagName === "INPUT") return;
+      if (e.key === "ArrowLeft") btnPrev.click();
+      if (e.key === "ArrowRight") btnNext.click();
+      if (e.key === " ") { e.preventDefault(); btnPlay.click(); }
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  NAVIGATE TO CHAPTER
+    // ═══════════════════════════════════════════════════
+    async function navigateToChapter(index) {
+      const ch = chapters[index];
+      if (!ch) return;
+
+      currentChapter = index;
+      const ready = getReadyChapters();
+      const readyIdx = ready.findIndex(c => c.chapter_index === index);
+      hudChapter.textContent = `Chapter ${index + 1}: ${ch.episode_title}`;
+
+      // Chapter title card
+      const color = typeColors[ch.chapter_type] || "#ccc";
+      cardType.textContent = ch.chapter_type.replace("_", " ");
+      cardType.style.color = color;
+      cardTitle.textContent = ch.episode_title;
+      cardLine.style.background = color;
+      cardCounter.textContent = `${readyIdx + 1} of ${ready.length}`;
+      chapterCard.classList.add("visible");
+      setTimeout(() => chapterCard.classList.remove("visible"), 4000);
+
+      // Marble link
+      if (ch.marble_url) {
+        marbleLink.href = ch.marble_url;
+        marbleLink.style.display = "block";
+        marbleLink.textContent = "Marble 3D";
+      }
+
+      // Load panorama
+      if (ch.pano_url) {
+        try { await loadPanorama(ch.pano_url); } catch (err) { console.warn("Pano load failed:", err); }
+      }
+
+      buildTimeline();
+    }
+
+    // ─── Playback progress bar update ─────────────────
+    function updatePlaybackBar() {
+      if (isPlaying) {
+        const elapsed = performance.now() - playStartTime;
+        const pct = Math.min((elapsed / PLAY_INTERVAL) * 100, 100);
+        playbackFill.style.width = pct + "%";
+      }
+    }
+
+    // ─── Render loop ──────────────────────────────────
+    function animate() {
+      requestAnimationFrame(animate);
+      updateWASD();
+      updateAutoFly();
+      controls.update();
+      animateParticles();
+      updatePlaybackBar();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // ─── Resize ───────────────────────────────────────
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
