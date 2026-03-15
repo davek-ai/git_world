@@ -241,26 +241,8 @@ app.post("/api/batch", async (req, res) => {
   });
 });
 
-// ─── Serve viewer with shareable routes ───────────────────────
-// /                     → viewer with modal
-// /:owner               → user/org constellation
-// /:owner/:repo         → single repo world
+// ─── Serve viewer ─────────────────────────────────────────────
 app.get("/", (_req, res) => {
-  res.sendFile(join(__dirname, "viewer", "index.html"));
-});
-
-app.get("/:owner", (req, res) => {
-  // Skip API and static file routes
-  if (req.params.owner.startsWith("api") || req.params.owner.includes(".")) {
-    return res.status(404).end();
-  }
-  res.sendFile(join(__dirname, "viewer", "index.html"));
-});
-
-app.get("/:owner/:repo", (req, res) => {
-  if (req.params.owner.startsWith("api")) {
-    return res.status(404).end();
-  }
   res.sendFile(join(__dirname, "viewer", "index.html"));
 });
 

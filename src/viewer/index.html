@@ -1290,13 +1290,8 @@
     evtSource.addEventListener("connected", () => {
       introSub.textContent = "connected";
       introSub.classList.remove("connecting");
-
-      if (route) {
-        // Auto-load from URL route
-        handleRoute(route);
-      } else {
-        fetchState();
-      }
+      // Always load normally — URL updates are for sharing only, not for triggering generation
+      fetchState();
     });
 
     async function handleRoute(r) {
