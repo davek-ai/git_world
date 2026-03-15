@@ -1,5 +1,30 @@
 [
   {
+    "repo_url": "https://github.com/coinbase/x402",
+    "world_name": "Permit402",
+    "genre": "neon_bazaar",
+    "tagline": "Where every data stream flows through payment-gated checkpoints across infinite networks",
+    "created_at": "2026-03-15T00:55:51.228Z",
+    "chapters": [
+      {
+        "title": "The First Permit",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/4868091d-f70c-4bdb-a441-6288663b1de5",
+        "pano_url": "https://cdn.marble.worldlabs.ai/4868091d-f70c-4bdb-a441-6288663b1de5/506ad699-dea5-47db-afec-53622091485b_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/4868091d-f70c-4bdb-a441-6288663b1de5/33bdfca5-722a-4a0f-9f2b-4438ef8414a9_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Schemes and Networks",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/87f6ce27-0fa0-4869-bee3-6afb36fe2997",
+        "pano_url": "https://cdn.marble.worldlabs.ai/87f6ce27-0fa0-4869-bee3-6afb36fe2997/b69ea115-92e5-4f98-ad88-43be6930cc37_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/87f6ce27-0fa0-4869-bee3-6afb36fe2997/38f547dd-c763-406d-a4b4-38370e9b6fce_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
     "repo_url": "https://github.com/apple/container",
     "world_name": "The Territorial Grid",
     "genre": "cyberpunk",

@@ -9,7 +9,23 @@ export type Genre =
   | "deep_sea"
   | "orbital"
   | "mythic"
-  | "industrial";
+  | "industrial"
+  | "arctic"
+  | "volcanic"
+  | "biopunk"
+  | "art_deco"
+  | "ancient_ruins"
+  | "crystalline"
+  | "steampunk"
+  | "zen_garden"
+  | "desert_mirage"
+  | "coral_reef"
+  | "clockwork"
+  | "overgrown"
+  | "neon_bazaar"
+  | "floating_islands"
+  | "underground"
+  | "aurora";
 
 // ─── Chapter Types ────────────────────────────────────────────
 export type ChapterType =
@@ -220,8 +236,10 @@ export interface RepoContext {
   size: number;
   default_branch: string;
   tree_summary: string;
+  file_tree: string;
   readme_excerpt: string;
   package_json: Record<string, unknown> | null;
+  code_samples: string;
 }
 
 export interface CommitInfo {

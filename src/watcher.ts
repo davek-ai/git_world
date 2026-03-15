@@ -72,9 +72,14 @@ export class Watcher {
       this.state = existingState;
     }
 
-    // Try loading existing bible
-    this.bible = await loadStoryBible();
-    if (this.bible) {
+    // Try loading existing bible — only reuse if it matches this repo
+    const existingBible = await loadStoryBible();
+    if (
+      existingBible &&
+      existingState &&
+      existingState.repo_url === this.repoUrl
+    ) {
+      this.bible = existingBible;
       this.state = { ...this.state, story_bible: this.bible };
       console.log(`\n  Story Bible loaded: "${this.bible.world_name}"\n`);
       this.emit({ type: "story_bible", data: this.bible });

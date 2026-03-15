@@ -25,13 +25,18 @@ export class GitHubAnalyzer {
   async analyzeRepo(repoUrl: string): Promise<RepoContext> {
     const { owner, repo: repoName } = this.parseUrl(repoUrl);
 
-    const [repoData, languages, tree, readme, pkg] = await Promise.all([
+    const [repoData, languages, treeData, readme, pkg] = await Promise.all([
       this.octokit.rest.repos.get({ owner, repo: repoName }),
       this.octokit.rest.repos.listLanguages({ owner, repo: repoName }),
-      this.getTreeSummary(owner, repoName),
+      this.getFullTree(owner, repoName),
       this.getReadmeExcerpt(owner, repoName),
       this.getPackageJson(owner, repoName),
     ]);
+
+    const { summary: treeSummary, paths: filePaths, fileTree } = treeData;
+
+    // Sample actual source code for personality/DNA
+    const codeSamples = await this.sampleCode(owner, repoName, filePaths);
 
     const r = repoData.data;
     return {
@@ -44,9 +49,11 @@ export class GitHubAnalyzer {
       forks: r.forks_count,
       size: r.size,
       default_branch: r.default_branch,
-      tree_summary: tree,
+      tree_summary: treeSummary,
+      file_tree: fileTree,
       readme_excerpt: readme,
       package_json: pkg,
+      code_samples: codeSamples,
     };
   }
 
@@ -128,10 +135,10 @@ export class GitHubAnalyzer {
     return `${data.total_commits} commits, ${data.files?.length ?? 0} files changed\n${summary}`;
   }
 
-  private async getTreeSummary(
+  private async getFullTree(
     owner: string,
     repo: string
-  ): Promise<string> {
+  ): Promise<{ summary: string; paths: string[]; fileTree: string }> {
     try {
       const { data } = await this.octokit.rest.git.getTree({
         owner,
@@ -143,19 +150,71 @@ export class GitHubAnalyzer {
         .filter((t) => t.type === "blob")
         .map((t) => t.path)
         .filter((p): p is string => !!p);
-      // Summarize: top-level dirs and file counts
+
+      // Summary: top-level dirs and file counts
       const dirs = new Map<string, number>();
       for (const p of paths) {
         const top = p.includes("/") ? p.split("/")[0] : "(root)";
         dirs.set(top, (dirs.get(top) ?? 0) + 1);
       }
-      return Array.from(dirs.entries())
+      const summary = Array.from(dirs.entries())
         .sort((a, b) => b[1] - a[1])
         .map(([d, n]) => `${d}/ (${n} files)`)
         .join("\n");
+
+      // Full file tree (truncated to avoid token bloat)
+      const fileTree = paths.slice(0, 150).join("\n");
+
+      return { summary, paths, fileTree };
     } catch {
-      return "(tree unavailable)";
+      return { summary: "(tree unavailable)", paths: [], fileTree: "" };
     }
+  }
+
+  /**
+   * Sample actual source code from key files to extract the repo's "DNA" —
+   * function names, class names, variable names, comments, domain language.
+   */
+  private async sampleCode(
+    owner: string,
+    repo: string,
+    allPaths: string[]
+  ): Promise<string> {
+    // Pick interesting source files (not config, not vendor, not lock files)
+    const sourceExts = /\.(ts|js|tsx|jsx|py|go|rs|rb|java|swift|kt|c|cpp|h|cs|ex|clj|scala|sol|move)$/;
+    const skipPatterns = /node_modules|vendor|dist|build|\.min\.|\.lock|\.config\.|__pycache__|\.test\.|\.spec\./;
+
+    const candidates = allPaths
+      .filter((p) => sourceExts.test(p) && !skipPatterns.test(p))
+      .sort((a, b) => {
+        // Prioritize: main/index/app files, then shorter paths (closer to root)
+        const aScore = /^(src\/)?(main|index|app|lib|core)/i.test(a) ? -10 : 0;
+        const bScore = /^(src\/)?(main|index|app|lib|core)/i.test(b) ? -10 : 0;
+        return (aScore + a.split("/").length) - (bScore + b.split("/").length);
+      });
+
+    // Sample up to 5 files, ~200 lines each
+    const filesToSample = candidates.slice(0, 5);
+    const samples: string[] = [];
+
+    for (const filePath of filesToSample) {
+      try {
+        const { data } = await this.octokit.rest.repos.getContent({
+          owner,
+          repo,
+          path: filePath,
+        });
+        if ("content" in data) {
+          const content = Buffer.from(data.content, "base64").toString("utf-8");
+          const lines = content.split("\n").slice(0, 200);
+          samples.push(`── ${filePath} ──\n${lines.join("\n")}`);
+        }
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+
+    return samples.join("\n\n") || "(no source code sampled)";
   }
 
   private async getReadmeExcerpt(
