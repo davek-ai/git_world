@@ -222,7 +222,7 @@
 
   <div id="controls-hint">
     <span>W/S</span> forward/back &nbsp; <span>A/D</span> strafe &nbsp; <span>Q/E</span> up/down<br>
-    <span>drag</span> look &nbsp; <span>scroll</span> zoom &nbsp; <span>F</span> fly
+    <span>drag</span> look &nbsp; <span>scroll</span> zoom &nbsp; <span>F</span> fly &nbsp; <span>M</span> music
   </div>
 
   <div id="top-bar">
@@ -238,6 +238,7 @@
 
   <div id="bottom-bar">
     <button id="btn-prev" title="Previous chapter">&larr;</button>
+    <button id="btn-music" title="Toggle soundtrack (M)">Music</button>
     <button id="btn-fly" title="Auto-fly cinematic camera">Fly</button>
     <button id="btn-play" title="Auto-play all chapters">Play All</button>
     <button id="btn-next" title="Next chapter">&rarr;</button>
@@ -756,6 +757,170 @@
       }
     }
 
+    // ═══════════════════════════════════════════════════
+    //  AMBIENT MUSIC — Web Audio API, genre-driven
+    // ═══════════════════════════════════════════════════
+    let audioCtx = null;
+    let musicPlaying = false;
+    let musicLoop = null;
+    let activeSources = [];
+    let currentGenre = "orbital";
+    const btnMusic = document.getElementById("btn-music");
+
+    // Genre → sound palette: notes (Hz), waveform, filter cutoff, delay, tempo (ms between notes)
+    const genreSounds = {
+      noir:             { notes: [130.8,155.6,174.6,207.7,233.1], wave:"sine",     filter:600,  delay:0.5, tempo:2200, attack:0.4, release:2.0 },
+      cyberpunk:        { notes: [146.8,174.6,220.0,261.6,329.6], wave:"sawtooth", filter:1200, delay:0.3, tempo:900,  attack:0.1, release:1.0 },
+      solarpunk:        { notes: [261.6,329.6,392.0,440.0,523.3], wave:"triangle", filter:2000, delay:0.4, tempo:1300, attack:0.3, release:1.5 },
+      brutalist:        { notes: [65.4,82.4,98.0,110.0],          wave:"sawtooth", filter:400,  delay:0.6, tempo:3000, attack:0.5, release:2.5 },
+      cathedral:        { notes: [196.0,246.9,293.7,329.6,392.0], wave:"sine",     filter:1500, delay:0.7, tempo:2800, attack:0.6, release:3.0 },
+      arctic:           { notes: [523.3,659.3,784.0,880.0,1047],  wave:"sine",     filter:3000, delay:0.8, tempo:2200, attack:0.5, release:2.5 },
+      volcanic:         { notes: [55.0,65.4,73.4,82.4,98.0],      wave:"sawtooth", filter:300,  delay:0.4, tempo:1800, attack:0.3, release:2.0 },
+      deep_sea:         { notes: [82.4,98.0,110.0,130.8,146.8],   wave:"sine",     filter:500,  delay:0.9, tempo:3500, attack:0.8, release:3.0 },
+      zen_garden:       { notes: [293.7,329.6,440.0,523.3,659.3], wave:"triangle", filter:1800, delay:0.6, tempo:3500, attack:0.2, release:2.0 },
+      coral_reef:       { notes: [261.6,311.1,370.0,440.0,523.3], wave:"triangle", filter:2500, delay:0.35,tempo:1100, attack:0.15,release:1.2 },
+      mythic:           { notes: [174.6,220.0,261.6,329.6,392.0], wave:"sawtooth", filter:1000, delay:0.5, tempo:2000, attack:0.3, release:2.0 },
+      art_deco:         { notes: [220.0,277.2,329.6,415.3,440.0], wave:"triangle", filter:1600, delay:0.4, tempo:1500, attack:0.2, release:1.5 },
+      steampunk:        { notes: [146.8,174.6,196.0,220.0,261.6], wave:"square",   filter:800,  delay:0.3, tempo:1200, attack:0.1, release:0.8 },
+      crystalline:      { notes: [440.0,554.4,659.3,880.0,1047],  wave:"sine",     filter:4000, delay:0.7, tempo:2400, attack:0.4, release:2.5 },
+      orbital:          { notes: [130.8,164.8,196.0,246.9,293.7], wave:"sine",     filter:1200, delay:0.8, tempo:2500, attack:0.5, release:2.5 },
+      frontier:         { notes: [196.0,220.0,261.6,293.7,329.6], wave:"triangle", filter:1400, delay:0.5, tempo:1800, attack:0.3, release:1.5 },
+      biopunk:          { notes: [110.0,138.6,164.8,207.7,246.9], wave:"sawtooth", filter:900,  delay:0.4, tempo:1100, attack:0.2, release:1.2 },
+      floating_islands: { notes: [293.7,349.2,440.0,523.3,659.3], wave:"sine",     filter:2200, delay:0.7, tempo:2200, attack:0.5, release:2.5 },
+      underground:      { notes: [73.4,87.3,98.0,116.5,130.8],    wave:"sawtooth", filter:350,  delay:0.6, tempo:2800, attack:0.4, release:2.0 },
+      aurora:           { notes: [329.6,392.0,440.0,523.3,659.3], wave:"sine",     filter:3000, delay:0.8, tempo:2400, attack:0.6, release:3.0 },
+      desert_mirage:    { notes: [220.0,246.9,293.7,370.0,440.0], wave:"triangle", filter:1600, delay:0.6, tempo:2200, attack:0.4, release:2.0 },
+      clockwork:        { notes: [261.6,293.7,329.6,349.2,392.0], wave:"square",   filter:700,  delay:0.25,tempo:900,  attack:0.05,release:0.5 },
+      overgrown:        { notes: [196.0,233.1,261.6,311.1,349.2], wave:"triangle", filter:1400, delay:0.5, tempo:2400, attack:0.3, release:2.0 },
+      neon_bazaar:      { notes: [220.0,261.6,311.1,370.0,440.0], wave:"sawtooth", filter:1800, delay:0.3, tempo:800,  attack:0.1, release:0.8 },
+      ancient_ruins:    { notes: [146.8,174.6,196.0,233.1,261.6], wave:"sine",     filter:800,  delay:0.9, tempo:3500, attack:0.7, release:3.5 },
+      industrial:       { notes: [82.4,98.0,110.0,130.8,146.8],   wave:"square",   filter:500,  delay:0.2, tempo:700,  attack:0.05,release:0.4 },
+    };
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function playNote(freq, config) {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+
+      // Two slightly detuned oscillators for richness
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      osc1.type = config.wave;
+      osc2.type = config.wave;
+      osc1.frequency.setValueAtTime(freq, now);
+      osc2.frequency.setValueAtTime(freq * 1.003, now); // slight detune
+
+      // Filter
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(config.filter + Math.random() * 200, now);
+      filter.Q.setValueAtTime(1.2, now);
+
+      // Gain envelope
+      const gain = ctx.createGain();
+      const attack = config.attack + Math.random() * 0.2;
+      const sustain = 0.5 + Math.random() * 0.8;
+      const release = config.release + Math.random() * 0.5;
+      const vol = 0.04 + Math.random() * 0.02;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + attack);
+      gain.gain.setValueAtTime(vol * 0.8, now + attack + sustain);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + attack + sustain + release);
+
+      // Delay for space
+      const delay = ctx.createDelay(2.0);
+      delay.delayTime.setValueAtTime(config.delay + Math.random() * 0.1, now);
+      const delayGain = ctx.createGain();
+      delayGain.gain.setValueAtTime(0.25, now);
+
+      // Master gain (overall volume)
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.5, now);
+
+      // Connect: osc → filter → gain → master → out
+      //                                 → delay → delayGain → out (+ feedback)
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(master);
+      master.connect(ctx.destination);
+      gain.connect(delay);
+      delay.connect(delayGain);
+      delayGain.connect(ctx.destination);
+      delayGain.connect(delay); // feedback
+
+      const dur = attack + sustain + release + 1.5;
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + dur);
+      osc2.stop(now + dur);
+      activeSources.push(osc1, osc2);
+
+      osc1.onended = () => {
+        [osc1,osc2,filter,gain,delay,delayGain,master].forEach(n => { try { n.disconnect(); } catch {} });
+        activeSources = activeSources.filter(s => s !== osc1 && s !== osc2);
+      };
+    }
+
+    function startMusicLoop(genre) {
+      const config = genreSounds[genre] || genreSounds.orbital;
+      currentGenre = genre;
+
+      function tick() {
+        if (!musicPlaying) return;
+
+        // Play 1-3 notes per tick (more for fast genres, fewer for ambient)
+        const noteCount = config.tempo < 1000 ? 1 + Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 1.5);
+        for (let i = 0; i < noteCount; i++) {
+          const note = config.notes[Math.floor(Math.random() * config.notes.length)];
+          // Occasional octave shift
+          const octave = Math.random() > 0.7 ? (Math.random() > 0.5 ? 2 : 0.5) : 1;
+          setTimeout(() => { if (musicPlaying) playNote(note * octave, config); }, i * 120);
+        }
+
+        // Vary timing for organic feel
+        const nextTick = config.tempo + (Math.random() - 0.5) * config.tempo * 0.4;
+        musicLoop = setTimeout(tick, nextTick);
+      }
+
+      tick();
+    }
+
+    function startMusic() {
+      const ctx = getAudioCtx();
+      if (ctx.state === "suspended") ctx.resume();
+      musicPlaying = true;
+      startMusicLoop(currentGenre);
+      btnMusic.classList.add("active");
+      btnMusic.textContent = "Mute";
+    }
+
+    function stopMusicPlayback() {
+      musicPlaying = false;
+      if (musicLoop) { clearTimeout(musicLoop); musicLoop = null; }
+      activeSources.forEach(s => { try { s.stop(); } catch {} });
+      activeSources = [];
+      btnMusic.classList.remove("active");
+      btnMusic.textContent = "Music";
+    }
+
+    btnMusic.addEventListener("click", () => {
+      if (musicPlaying) stopMusicPlayback();
+      else startMusic();
+    });
+
+    // M key toggles music
+    window.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "m" && !repoModal.classList.contains("show") && e.target.tagName !== "INPUT") {
+        if (musicPlaying) stopMusicPlayback();
+        else startMusic();
+      }
+    });
+
     // ─── SSE connection ───────────────────────────────
     const apiBase = window.location.origin;
     const evtSource = new EventSource(`${apiBase}/api/events`);
@@ -909,6 +1074,9 @@
               hudTagline.textContent = entry.tagline;
               showRepoLink(entry.repo_url);
               hudGenre.textContent = entry.genre;
+              // Switch music to match this world's genre
+              currentGenre = entry.genre || "orbital";
+              if (musicPlaying) { stopMusicPlayback(); startMusic(); }
               hudChapter.textContent = firstReady.title;
               if (firstReady.marble_url) {
                 marbleLink.href = firstReady.marble_url;
@@ -953,6 +1121,7 @@
       chapters = [];
       currentChapter = -1;
       stopPlayback();
+      stopMusicPlayback();
       if (panoMesh) { scene.remove(panoMesh); panoMesh.geometry.dispose(); panoMesh.material.dispose(); panoMesh = null; }
       scene.background = new THREE.Color(0x050510);
       hudName.textContent = "";
@@ -1015,6 +1184,11 @@
       const accentColor = bible.visual_palette.accent || "#22cc66";
       playbackFill.style.background = accentColor;
 
+      // Set music genre from Story Bible
+      currentGenre = bible.genre || "orbital";
+      // If music is already playing, restart with new genre
+      if (musicPlaying) { stopMusicPlayback(); startMusic(); }
+
       setTimeout(() => {
         introOverlay.classList.add("fade-out");
         setTimeout(() => introOverlay.style.display = "none", 1500);
@@ -1076,6 +1250,7 @@
       playbackBar.classList.add("show");
       controls.autoRotate = true;
       if (!autoFlying) startAutoFly(); // fly during playback
+      if (!musicPlaying) startMusic(); // soundtrack during playback
 
       // Start from first chapter if none selected, or next chapter
       const startIdx = currentChapter < 0 ? ready[0].chapter_index : currentChapter;

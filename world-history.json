@@ -1,5 +1,113 @@
 [
   {
+    "repo_url": "https://github.com/gnosis/GECO",
+    "world_name": "The Redistribution Gardens",
+    "genre": "solarpunk",
+    "tagline": "Where ambitious seeds of innovation bloom into a decentralized future",
+    "created_at": "2026-03-15T01:51:03.801Z",
+    "chapters": [
+      {
+        "title": "The First Planting",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/6a23db11-28fb-4a3e-91eb-4bc5cd101828",
+        "pano_url": "https://cdn.marble.worldlabs.ai/6a23db11-28fb-4a3e-91eb-4bc5cd101828/957e3cde-af36-4921-9f03-125f54476c0b_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/6a23db11-28fb-4a3e-91eb-4bc5cd101828/4e78afc1-2296-44a2-80b6-271d624c44fd_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Wave Gardens Emerge",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/c9a806d8-f274-4d1c-9789-24694e454343",
+        "pano_url": "https://cdn.marble.worldlabs.ai/c9a806d8-f274-4d1c-9789-24694e454343/47da4de6-91bb-45ea-b2b9-54413542ee28_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/c9a806d8-f274-4d1c-9789-24694e454343/b3d3b8cc-3cb7-4472-81ba-106e9d98010b_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/gnosis/conditional-tokens-contracts",
+    "world_name": "The Conditional Foundry",
+    "genre": "crystalline",
+    "tagline": "Where probability splits reality into tradeable fragments of future truth",
+    "created_at": "2026-03-15T01:43:07.208Z",
+    "chapters": [
+      {
+        "title": "The First Fracture",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/0973bc57-fb94-45d1-8d13-04a6ac4a4951",
+        "pano_url": "https://cdn.marble.worldlabs.ai/0973bc57-fb94-45d1-8d13-04a6ac4a4951/7772b649-efe4-4e75-b012-7c14ccc43287_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/0973bc57-fb94-45d1-8d13-04a6ac4a4951/7d01a122-1e4a-4fa3-80de-fdecc039d9a7_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Splitting the Light",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/e0352fb2-8c8d-4b86-a050-9e1d25b5d16e",
+        "pano_url": "https://cdn.marble.worldlabs.ai/e0352fb2-8c8d-4b86-a050-9e1d25b5d16e/1c645906-40bd-4647-a7c3-a1f07d225b76_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/e0352fb2-8c8d-4b86-a050-9e1d25b5d16e/45a62aa6-2dfb-4954-80e8-8635f222e5d1_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Oracle Resonance",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/f74cbfd9-0d05-4be1-b3ee-971e90255a33",
+        "pano_url": "https://cdn.marble.worldlabs.ai/f74cbfd9-0d05-4be1-b3ee-971e90255a33/c5965ed6-4e47-4076-8568-f9f28bdaec99_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/f74cbfd9-0d05-4be1-b3ee-971e90255a33/6aa07015-5349-4674-b150-cf7bc93fea26_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "The Partition Dance",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/e1d1ac72-c9b6-44c4-bc9c-5a8ae22fbf77",
+        "pano_url": "https://cdn.marble.worldlabs.ai/e1d1ac72-c9b6-44c4-bc9c-5a8ae22fbf77/ef042f9f-2500-4bd3-a352-993400b9478c_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/e1d1ac72-c9b6-44c4-bc9c-5a8ae22fbf77/44bb2c9c-100a-417e-ac60-d058c0c3b024_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/gnosis/prediction-market-agent",
+    "world_name": "The Omen Archipelago",
+    "genre": "floating_islands",
+    "tagline": "Where prophetic algorithms sail between islands of probability, trading tomorrow's truths",
+    "created_at": "2026-03-15T01:40:49.114Z",
+    "chapters": [
+      {
+        "title": "The First Airship",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/686b3455-e6bb-47dd-bc85-69864b3ad0eb",
+        "pano_url": "https://cdn.marble.worldlabs.ai/686b3455-e6bb-47dd-bc85-69864b3ad0eb/7bb06cfe-60a7-43a1-b1ec-ea907a807ba8_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/686b3455-e6bb-47dd-bc85-69864b3ad0eb/121fea74-6bde-4e17-94d8-d2d0484bf43e_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Islands of Tomorrow",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/dc4173c8-4f4c-4f80-b087-b46624cf767c",
+        "pano_url": "https://cdn.marble.worldlabs.ai/dc4173c8-4f4c-4f80-b087-b46624cf767c/80fb92af-368c-448b-a84a-8e2f9c3053fd_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/dc4173c8-4f4c-4f80-b087-b46624cf767c/9812c7f4-3961-4f1c-8525-8702e7947097_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/facebookincubator/later",
+    "world_name": "Chronos Haven",
+    "genre": "clockwork",
+    "tagline": "Where time bends to serve the patient, and every promise finds its moment",
+    "created_at": "2026-03-15T01:38:12.192Z",
+    "chapters": [
+      {
+        "title": "The First Tick",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/b145a945-412f-40d2-86ee-e4c1e58c66b8",
+        "pano_url": "https://cdn.marble.worldlabs.ai/b145a945-412f-40d2-86ee-e4c1e58c66b8/12166576-0e85-4c8e-bcc5-5756bdafe25c_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/b145a945-412f-40d2-86ee-e4c1e58c66b8/767e761b-a3a4-42b5-b231-feb626e9aa52_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
     "repo_url": "https://github.com/coinbase/x402",
     "world_name": "Permit402",
     "genre": "neon_bazaar",
