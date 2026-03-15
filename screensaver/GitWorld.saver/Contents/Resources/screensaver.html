@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; cursor: none; }
+    #canvas { width: 100%; height: 100%; display: block; }
+
+    /* World info overlay — fades in/out */
+    #world-info {
+      position: fixed; bottom: 60px; left: 60px; z-index: 10;
+      opacity: 0; transition: opacity 2s ease;
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace; color: #eee;
+    }
+    #world-info.visible { opacity: 1; }
+    #world-info .world-name { font-size: 32px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+    #world-info .tagline { font-size: 16px; color: #999; font-style: italic; margin-bottom: 8px; }
+    #world-info .repo { font-size: 13px; color: #6688cc; }
+    #world-info .genre { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 3px; margin-top: 6px; }
+
+    /* git_world watermark */
+    #watermark {
+      position: fixed; bottom: 20px; right: 30px; z-index: 10;
+      font-family: 'SF Mono', monospace; font-size: 11px; color: #333; letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div id="world-info">
+    <div class="world-name" id="info-name"></div>
+    <div class="tagline" id="info-tagline"></div>
+    <div class="repo" id="info-repo"></div>
+    <div class="genre" id="info-genre"></div>
+  </div>
+
+  <div id="watermark">git_world</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.170.0",
+      "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+
+    // ─── Config ───────────────────────────────────────
+    const API_URLS = [
+      "http://localhost:3000/api/history",
+      "https://git-world-m9aes.ondigitalocean.app/api/history",
+    ];
+    const CYCLE_INTERVAL = 25000;  // 25s per world
+    const FADE_DURATION = 2000;    // 2s crossfade
+    const REFETCH_INTERVAL = 600000; // 10min refetch
+
+    // ─── State ────────────────────────────────────────
+    let worlds = [];
+    let currentIndex = -1;
+    let panoMesh = null;
+    let nextPanoMesh = null;
+    let particles = null;
+    let sparkParticles = null;
+
+    // ─── DOM ──────────────────────────────────────────
+    const canvas = document.getElementById("canvas");
+    const worldInfo = document.getElementById("world-info");
+    const infoName = document.getElementById("info-name");
+    const infoTagline = document.getElementById("info-tagline");
+    const infoRepo = document.getElementById("info-repo");
+    const infoGenre = document.getElementById("info-genre");
+
+    // ─── Three.js ─────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050510);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 0.01);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // Slow auto-rotate
+    let rotY = 0;
+    const ROT_SPEED = 0.0003;
+
+    // ─── Particles ────────────────────────────────────
+    function createParticles() {
+      const count = 600;
+      const pos = new Float32Array(count * 3);
+      const vel = [];
+      for (let i = 0; i < count; i++) {
+        pos[i*3] = (Math.random()-0.5)*80;
+        pos[i*3+1] = (Math.random()-0.5)*80;
+        pos[i*3+2] = (Math.random()-0.5)*80;
+        vel.push((Math.random()-0.5)*0.006, Math.random()*0.008+0.002, (Math.random()-0.5)*0.006);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      particles = new THREE.Points(geo, new THREE.PointsMaterial({
+        color: 0x6688cc, size: 0.1, transparent: true, opacity: 0.2,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      particles._vel = vel;
+      scene.add(particles);
+
+      // Accent sparks
+      const sCount = 300;
+      const sPos = new Float32Array(sCount * 3);
+      const sLife = [];
+      for (let i = 0; i < sCount; i++) {
+        const t = Math.random()*Math.PI*2, p = Math.acos(2*Math.random()-1), r = 20+Math.random()*30;
+        sPos[i*3] = r*Math.sin(p)*Math.cos(t);
+        sPos[i*3+1] = r*Math.sin(p)*Math.sin(t);
+        sPos[i*3+2] = r*Math.cos(p);
+        sLife.push(Math.random());
+      }
+      const sGeo = new THREE.BufferGeometry();
+      sGeo.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
+      sparkParticles = new THREE.Points(sGeo, new THREE.PointsMaterial({
+        color: 0x22ccff, size: 0.06, transparent: true, opacity: 0.15,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      sparkParticles._life = sLife;
+      scene.add(sparkParticles);
+    }
+
+    function animateParticles() {
+      if (particles) {
+        const p = particles.geometry.attributes.position;
+        const a = p.array, v = particles._vel;
+        for (let i = 0; i < a.length/3; i++) {
+          a[i*3] += v[i*3]; a[i*3+1] += v[i*3+1]; a[i*3+2] += v[i*3+2];
+          if (Math.abs(a[i*3+1]) > 40) a[i*3+1] *= -0.95;
+          if (Math.abs(a[i*3]) > 50) a[i*3] *= -0.95;
+          if (Math.abs(a[i*3+2]) > 50) a[i*3+2] *= -0.95;
+        }
+        p.needsUpdate = true;
+      }
+      if (sparkParticles) {
+        const p = sparkParticles.geometry.attributes.position;
+        const a = p.array, l = sparkParticles._life;
+        for (let i = 0; i < a.length/3; i++) {
+          l[i] += 0.003;
+          if (l[i] > 1) {
+            const t = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1), r = 20+Math.random()*30;
+            a[i*3]=r*Math.sin(ph)*Math.cos(t); a[i*3+1]=r*Math.sin(ph)*Math.sin(t); a[i*3+2]=r*Math.cos(ph); l[i]=0;
+          }
+          a[i*3] -= a[i*3]*0.002; a[i*3+1] -= a[i*3+1]*0.002; a[i*3+2] -= a[i*3+2]*0.002;
+        }
+        p.needsUpdate = true;
+      }
+    }
+
+    createParticles();
+
+    // ─── Genre colors ─────────────────────────────────
+    const genreColors = {
+      noir:0x8888aa, cyberpunk:0x00d4ff, solarpunk:0x44cc66, brutalist:0x888888,
+      cathedral:0xaa88cc, clockwork:0xdaa520, arctic:0x88ccff, volcanic:0xdd4422,
+      deep_sea:0x2266aa, zen_garden:0x66aa66, coral_reef:0xff8866, mythic:0xcc8844,
+      art_deco:0xddaa44, steampunk:0xcc8833, crystalline:0xaaccff, orbital:0x6688cc,
+      frontier:0x88aa44, biopunk:0x66cc88, floating_islands:0x88aadd, underground:0x886644,
+      aurora:0x88ddaa, desert_mirage:0xddaa66, overgrown:0x669944, neon_bazaar:0xff66aa,
+      ancient_ruins:0xaa8866, industrial:0x888888,
+    };
+
+    // ─── Panorama loading with crossfade ──────────────
+    const textureLoader = new THREE.TextureLoader();
+
+    function loadPano(url) {
+      return new Promise((resolve, reject) => {
+        textureLoader.load(url, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          const geo = new THREE.SphereGeometry(50, 64, 32);
+          geo.scale(-1, 1, 1);
+          const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
+          const mesh = new THREE.Mesh(geo, mat);
+          resolve(mesh);
+        }, undefined, reject);
+      });
+    }
+
+    async function transitionToWorld(world) {
+      const ch = world.chapters.find(c => c.pano_url && c.status === "ready");
+      if (!ch) return;
+
+      // Update info
+      worldInfo.classList.remove("visible");
+
+      // Load new pano
+      let newMesh;
+      try { newMesh = await loadPano(ch.pano_url); } catch { return; }
+      scene.add(newMesh);
+
+      // Crossfade: fade out old, fade in new
+      const start = performance.now();
+      const oldMesh = panoMesh;
+
+      function crossfade() {
+        const t = Math.min((performance.now() - start) / FADE_DURATION, 1);
+        const ease = t * t * (3 - 2 * t); // smoothstep
+        newMesh.material.opacity = ease;
+        if (oldMesh) oldMesh.material.opacity = 1 - ease;
+
+        if (t < 1) {
+          requestAnimationFrame(crossfade);
+        } else {
+          // Remove old
+          if (oldMesh) { scene.remove(oldMesh); oldMesh.geometry.dispose(); oldMesh.material.dispose(); }
+          panoMesh = newMesh;
+
+          // Show world info
+          infoName.textContent = world.world_name;
+          infoTagline.textContent = world.tagline;
+          infoRepo.textContent = world.repo_url.replace("https://github.com/", "");
+          infoGenre.textContent = world.genre;
+          worldInfo.classList.add("visible");
+
+          // Update colors
+          const color = genreColors[world.genre] || 0x6688cc;
+          scene.background = new THREE.Color(color).multiplyScalar(0.06);
+          if (particles) particles.material.color.setHex(color);
+          if (sparkParticles) sparkParticles.material.color.setHex(color);
+        }
+      }
+      crossfade();
+
+      // Hide info before next transition
+      setTimeout(() => { worldInfo.classList.remove("visible"); }, CYCLE_INTERVAL - FADE_DURATION - 2000);
+    }
+
+    // ─── Ambient music (genre-matched) ────────────────
+    let audioCtx = null;
+    let musicPlaying = false;
+    let musicLoop = null;
+
+    const genreSounds = {
+      noir:       { notes:[130.8,155.6,174.6,207.7], wave:"sine",     filter:600,  delay:0.5, tempo:2500 },
+      cyberpunk:  { notes:[146.8,174.6,220.0,261.6], wave:"sawtooth", filter:1200, delay:0.3, tempo:1000 },
+      solarpunk:  { notes:[261.6,329.6,392.0,440.0], wave:"triangle", filter:2000, delay:0.4, tempo:1400 },
+      cathedral:  { notes:[196.0,246.9,293.7,329.6], wave:"sine",     filter:1500, delay:0.7, tempo:3000 },
+      clockwork:  { notes:[261.6,293.7,329.6,349.2], wave:"square",   filter:700,  delay:0.25,tempo:900  },
+      zen_garden: { notes:[293.7,329.6,440.0,523.3], wave:"triangle", filter:1800, delay:0.6, tempo:3500 },
+      arctic:     { notes:[523.3,659.3,784.0,880.0], wave:"sine",     filter:3000, delay:0.8, tempo:2200 },
+      volcanic:   { notes:[55.0,65.4,73.4,82.4],     wave:"sawtooth", filter:300,  delay:0.4, tempo:1800 },
+      deep_sea:   { notes:[82.4,98.0,110.0,130.8],   wave:"sine",     filter:500,  delay:0.9, tempo:3500 },
+      crystalline:{ notes:[440.0,554.4,659.3,880.0],  wave:"sine",     filter:4000, delay:0.7, tempo:2400 },
+      neon_bazaar:{ notes:[220.0,261.6,311.1,370.0],  wave:"sawtooth", filter:1800, delay:0.3, tempo:800  },
+      steampunk:  { notes:[146.8,174.6,196.0,220.0],  wave:"square",   filter:800,  delay:0.3, tempo:1200 },
+      art_deco:   { notes:[220.0,277.2,329.6,415.3],  wave:"triangle", filter:1600, delay:0.4, tempo:1500 },
+      floating_islands:{ notes:[293.7,349.2,440.0,523.3], wave:"sine", filter:2200, delay:0.7, tempo:2200 },
+      ancient_ruins:{ notes:[146.8,174.6,196.0,233.1], wave:"sine",   filter:800,  delay:0.9, tempo:3500 },
+    };
+    const defaultSound = { notes:[130.8,164.8,196.0,246.9], wave:"sine", filter:1200, delay:0.8, tempo:2500 };
+
+    function playNote(freq, config) {
+      if (!audioCtx) audioCtx = new AudioContext();
+      const ctx = audioCtx, now = ctx.currentTime;
+      const osc1 = ctx.createOscillator(), osc2 = ctx.createOscillator();
+      osc1.type = config.wave; osc2.type = config.wave;
+      osc1.frequency.setValueAtTime(freq, now); osc2.frequency.setValueAtTime(freq*1.003, now);
+      const filter = ctx.createBiquadFilter(); filter.type="lowpass"; filter.frequency.setValueAtTime(config.filter, now);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.03, now+0.5);
+      gain.gain.exponentialRampToValueAtTime(0.001, now+3);
+      const delay = ctx.createDelay(2); delay.delayTime.setValueAtTime(config.delay, now);
+      const dGain = ctx.createGain(); dGain.gain.setValueAtTime(0.2, now);
+      osc1.connect(filter); osc2.connect(filter); filter.connect(gain);
+      gain.connect(ctx.destination); gain.connect(delay); delay.connect(dGain);
+      dGain.connect(ctx.destination); dGain.connect(delay);
+      osc1.start(now); osc2.start(now); osc1.stop(now+4); osc2.stop(now+4);
+      osc1.onended = () => { [osc1,osc2,filter,gain,delay,dGain].forEach(n => { try{n.disconnect()}catch{} }); };
+    }
+
+    function startMusic(genre) {
+      if (musicLoop) clearTimeout(musicLoop);
+      const config = genreSounds[genre] || defaultSound;
+      // Auto-start audio context
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      function tick() {
+        const note = config.notes[Math.floor(Math.random()*config.notes.length)];
+        const octave = Math.random() > 0.7 ? (Math.random() > 0.5 ? 2 : 0.5) : 1;
+        playNote(note*octave, config);
+        musicLoop = setTimeout(tick, config.tempo + (Math.random()-0.5)*config.tempo*0.4);
+      }
+      tick();
+    }
+
+    // ─── Fetch worlds ─────────────────────────────────
+    async function fetchWorlds() {
+      for (const url of API_URLS) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          const valid = data.filter(w => w.chapters.some(c => c.pano_url && c.status === "ready"));
+          if (valid.length > 0) {
+            worlds = valid;
+            console.log(`[screensaver] ${worlds.length} worlds loaded from ${url}`);
+            return;
+          }
+        } catch (err) {
+          console.warn(`[screensaver] ${url} failed:`, err.message || err);
+        }
+      }
+      console.warn("[screensaver] no worlds available from any source");
+    }
+
+    // ─── Cycle through worlds ─────────────────────────
+    async function nextWorld() {
+      if (worlds.length === 0) return;
+      currentIndex = (currentIndex + 1) % worlds.length;
+      const world = worlds[currentIndex];
+      await transitionToWorld(world);
+      startMusic(world.genre);
+    }
+
+    // ─── Main loop ────────────────────────────────────
+    async function init() {
+      await fetchWorlds();
+      if (worlds.length > 0) {
+        // Shuffle for variety
+        worlds.sort(() => Math.random() - 0.5);
+        nextWorld();
+        setInterval(nextWorld, CYCLE_INTERVAL);
+      }
+      // Refetch periodically for new community worlds
+      setInterval(fetchWorlds, REFETCH_INTERVAL);
+    }
+
+    // ─── Render loop ──────────────────────────────────
+    function animate() {
+      requestAnimationFrame(animate);
+      rotY += ROT_SPEED;
+      camera.rotation.y = rotY;
+      camera.rotation.x = Math.sin(rotY * 0.3) * 0.05; // gentle nod
+      animateParticles();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Start on click (audio policy) or auto if allowed
+    document.addEventListener("click", () => init(), { once: true });
+    // Try auto-start (works in screensaver context)
+    init();
+  </script>
+</body>
+</html>

@@ -11,6 +11,14 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+// CORS — allow screensaver and external clients to access the API
+app.use((_req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (_req.method === "OPTIONS") { res.status(204).end(); return; }
+  next();
+});
 app.use(express.json());
 app.use(express.static(join(__dirname, "viewer", "public")));
 
