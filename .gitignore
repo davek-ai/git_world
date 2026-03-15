@@ -6,3 +6,4 @@ story-bible.json
 manifest.json
 *.spz
 *.log
+*.pem
