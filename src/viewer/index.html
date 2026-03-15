@@ -1269,20 +1269,6 @@
       }
     });
 
-    // ─── Parse URL route for shareable links ──────────
-    // /davek-ai         → explore user/org
-    // /davek-ai/APEMap  → single repo
-    // /                 → normal viewer
-    function parseRoute() {
-      const path = window.location.pathname.replace(/^\//, "").replace(/\/$/, "");
-      if (!path || path.startsWith("api")) return null;
-      const parts = path.split("/");
-      if (parts.length === 2) return { type: "repo", owner: parts[0], repo: parts[1] };
-      if (parts.length === 1) return { type: "user", owner: parts[0] };
-      return null;
-    }
-    const route = parseRoute();
-
     // ─── SSE connection ───────────────────────────────
     const apiBase = window.location.origin;
     const evtSource = new EventSource(`${apiBase}/api/events`);
@@ -1290,92 +1276,8 @@
     evtSource.addEventListener("connected", () => {
       introSub.textContent = "connected";
       introSub.classList.remove("connecting");
-      // Always load normally — URL updates are for sharing only, not for triggering generation
       fetchState();
     });
-
-    async function handleRoute(r) {
-      if (r.type === "repo") {
-        // Single repo — auto-generate
-        const url = `https://github.com/${r.owner}/${r.repo}`;
-        introTitle.textContent = r.repo.toUpperCase();
-        introSub.textContent = `${r.owner}/${r.repo}`;
-        introSub.classList.add("connecting");
-        setGeneratingState("analyzing");
-
-        // Check history first
-        try {
-          const histRes = await fetch(`${apiBase}/api/history`);
-          const history = await histRes.json();
-          const existing = history.find(h => h.repo_url.toLowerCase() === url.toLowerCase());
-          if (existing) {
-            const readyCh = existing.chapters.find(c => c.pano_url && c.status === "ready");
-            if (readyCh) {
-              bible = { world_name: existing.world_name, tagline: existing.tagline, genre: existing.genre, subgenre: "", visual_palette: { primary: "#4466aa", accent: "#22cc66" } };
-              onBibleReady();
-              currentRepoUrl = url;
-              showRepoLink(url);
-              showContributorsButton();
-              hudGenre.textContent = existing.genre;
-              if (readyCh.pano_url) await loadPanorama(readyCh.pano_url);
-              hudChapter.textContent = readyCh.title;
-              if (readyCh.marble_url) { marbleLink.href = readyCh.marble_url; marbleLink.style.display = "block"; marbleLink.textContent = "Marble 3D"; }
-              currentGenre = existing.genre || "orbital";
-              // Load all chapters
-              chapters = existing.chapters.map((c, i) => ({ ...c, chapter_index: i, episode_title: c.title, chapter_type: c.type }));
-              buildTimeline();
-              return;
-            }
-          }
-        } catch {}
-
-        // Not in history — generate fresh
-        try {
-          await fetch(`${apiBase}/api/watch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ repo_url: url, chapter_count: 1, model: selectedModel }),
-          });
-        } catch (err) {
-          hudStatus.textContent = `error: ${err.message}`;
-          hudStatus.className = "status status-failed";
-        }
-
-      } else if (r.type === "user") {
-        // User/org — explore constellation
-        introTitle.textContent = r.owner.toUpperCase();
-        introSub.textContent = "discovering repos...";
-        introSub.classList.add("connecting");
-
-        try {
-          const res = await fetch(`${apiBase}/api/explore`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ owner: r.owner }),
-          });
-          const data = await res.json();
-          if (data.error) {
-            introSub.textContent = data.error;
-            introSub.classList.remove("connecting");
-            return;
-          }
-          const topRepos = data.repos.slice(0, 5);
-          const repoUrls = topRepos.map(r => r.url);
-
-          showConstellation(data.profile, topRepos);
-          setGeneratingState("generating");
-
-          await fetch(`${apiBase}/api/batch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ repo_urls: repoUrls, model: selectedModel }),
-          });
-        } catch (err) {
-          introSub.textContent = `error: ${err.message}`;
-          introSub.classList.remove("connecting");
-        }
-      }
-    }
 
     evtSource.addEventListener("story_bible", (e) => {
       bible = JSON.parse(e.data);
@@ -1601,7 +1503,6 @@
               showRepoLink(entry.repo_url);
               // Update URL for shareability
               const repoPath = entry.repo_url.replace("https://github.com/", "/");
-              history.pushState(null, entry.world_name, repoPath);
               document.title = `${entry.world_name} — git_world`;
               hudGenre.textContent = entry.genre;
               // Switch music to match this world's genre
@@ -2038,12 +1939,8 @@
       hudTagline.textContent = bible.tagline;
       hudGenre.textContent = `${bible.genre} / ${bible.subgenre}`;
 
-      // Update browser URL for shareability
+      // Update page title
       if (bible.repo_identity?.name) {
-        const path = `/${bible.repo_identity.name}`;
-        if (window.location.pathname !== path) {
-          history.pushState(null, bible.world_name, path);
-        }
         document.title = `${bible.world_name} — git_world`;
       }
 
