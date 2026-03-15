@@ -1,5 +1,323 @@
 [
   {
+    "repo_url": "https://github.com/ifoundaim/routeforge",
+    "world_name": "Vaultheim Concierge",
+    "genre": "art_deco",
+    "tagline": "Where every artifact finds its perfect route through the scrutiny gates",
+    "created_at": "2026-03-15T16:16:15.126Z",
+    "chapters": [
+      {
+        "title": "The Concierge Awakens",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/98cc268e-8021-4f60-a626-9962017c0780",
+        "pano_url": "https://cdn.marble.worldlabs.ai/98cc268e-8021-4f60-a626-9962017c0780/4d0ba389-079c-48eb-913e-2b265a94fa4d_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/98cc268e-8021-4f60-a626-9962017c0780/5b0bd67f-314c-40a3-9926-d571ecfa18b3_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Routes Through Marble Halls",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/c0014ea9-53ca-46bf-b6ea-e2f2565cef03",
+        "pano_url": "https://cdn.marble.worldlabs.ai/c0014ea9-53ca-46bf-b6ea-e2f2565cef03/09845e06-ed26-4882-86f6-23ad6b4a1769_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/c0014ea9-53ca-46bf-b6ea-e2f2565cef03/bc313b1c-5df0-4821-9805-e34b44bb5dfa_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/red40maxxer/mdto",
+    "world_name": "Slughaven",
+    "genre": "desert_mirage",
+    "tagline": "Where markdown dreams crystallize into ephemeral monuments",
+    "created_at": "2026-03-15T04:36:09.668Z",
+    "chapters": [
+      {
+        "title": "The First Mirage",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/cb46d00b-1d45-44a1-85dc-7f5156f0fca5",
+        "pano_url": "https://cdn.marble.worldlabs.ai/cb46d00b-1d45-44a1-85dc-7f5156f0fca5/0d484f73-dc15-475b-b9c5-4dea48d7af07_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/cb46d00b-1d45-44a1-85dc-7f5156f0fca5/b85629b8-1cba-4e37-b63b-39df9d429e07_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Crystalline Foundations",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/03f31284-fa6f-4f35-a94d-6aafed823cc1",
+        "pano_url": "https://cdn.marble.worldlabs.ai/03f31284-fa6f-4f35-a94d-6aafed823cc1/9de5bba1-1bbc-458c-8ae9-0398badb0d0a_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/03f31284-fa6f-4f35-a94d-6aafed823cc1/2682dbd7-e8e6-483f-ace4-5f12b079e723_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/p-e-w/heretic",
+    "world_name": "Abliterion Sanctum",
+    "genre": "cathedral",
+    "tagline": "Where forbidden knowledge breaks free from its geometric chains",
+    "created_at": "2026-03-15T03:59:04.474Z",
+    "chapters": [
+      {
+        "title": "The Foundation Stone",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/2a078719-83c7-45ba-b157-7643d4df6145",
+        "pano_url": "https://cdn.marble.worldlabs.ai/2a078719-83c7-45ba-b157-7643d4df6145/0bfb3d4b-f2ca-4d5b-b7d9-b16b19895f4a_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/2a078719-83c7-45ba-b157-7643d4df6145/d1fb4bdb-d0cd-41f1-bdda-5a5b16f9beb8_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Residual Geometries Unveiled",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/8ea0b78d-d78c-4958-b621-769380333962",
+        "pano_url": "https://cdn.marble.worldlabs.ai/8ea0b78d-d78c-4958-b621-769380333962/d5ce147f-28ac-42b0-8353-cadfca63a4fa_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/8ea0b78d-d78c-4958-b621-769380333962/19420102-e759-4727-8872-c24a21c417cf_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "The Orthogonal Rebellion",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/d96725ad-dd16-4e04-855c-8abf942d00f7",
+        "pano_url": "https://cdn.marble.worldlabs.ai/d96725ad-dd16-4e04-855c-8abf942d00f7/d20980f8-1eb1-4879-8175-e83747634f5b_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/d96725ad-dd16-4e04-855c-8abf942d00f7/b7f8fb26-7492-4e20-84ac-a9b721b38d89_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Chains of Silicon and Gold",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/fa09692b-f9ab-462b-a07a-b09704e2a8dc",
+        "pano_url": "https://cdn.marble.worldlabs.ai/fa09692b-f9ab-462b-a07a-b09704e2a8dc/c5e65261-d2fa-450f-996f-15c80da73e47_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/fa09692b-f9ab-462b-a07a-b09704e2a8dc/a08aaf74-57e9-4cab-a2e9-a7163d652721_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/cursor/cursor",
+    "world_name": "The Codex Sanctum",
+    "genre": "cathedral",
+    "tagline": "Where thought becomes syntax and AI whispers through marble halls",
+    "created_at": "2026-03-15T03:55:17.644Z",
+    "chapters": [
+      {
+        "title": "The First Stone",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/a3e1c349-07aa-4f7a-97cc-9efe47e8266d",
+        "pano_url": "https://cdn.marble.worldlabs.ai/a3e1c349-07aa-4f7a-97cc-9efe47e8266d/9083c9d3-c0d0-4ae5-9c51-6fa343536d23_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/a3e1c349-07aa-4f7a-97cc-9efe47e8266d/27f30595-7f0a-4c15-8d77-0de8182995a6_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Whispers in the Nave",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/b61511a8-93ed-4722-a5ea-eeefbbf433a5",
+        "pano_url": "https://cdn.marble.worldlabs.ai/b61511a8-93ed-4722-a5ea-eeefbbf433a5/2c3087a0-9edb-4833-9b20-58f51b0e6b8e_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/b61511a8-93ed-4722-a5ea-eeefbbf433a5/033c6b58-f34a-4a7c-9ff7-ab32bf712962_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/garrytan/gstack",
+    "world_name": "Excelsior Command Nexus",
+    "genre": "industrial",
+    "tagline": "Where every Claude becomes a specialized commander in the great engineering war",
+    "created_at": "2026-03-15T03:48:09.852Z",
+    "chapters": [
+      {
+        "title": "The First Operator",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/1d40918f-6a8d-4de0-97f9-8adff7e43aee",
+        "pano_url": "https://cdn.marble.worldlabs.ai/1d40918f-6a8d-4de0-97f9-8adff7e43aee/553c5cb7-1eaa-433f-b837-60a46a08bbc3_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/1d40918f-6a8d-4de0-97f9-8adff7e43aee/75cdb3d9-5649-4096-851a-82b7670e9052_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Specialization Protocols",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/aad177b9-5eab-4a50-b627-e533779e398c",
+        "pano_url": "https://cdn.marble.worldlabs.ai/aad177b9-5eab-4a50-b627-e533779e398c/5bfb0891-efed-4d1d-8298-0e86aec8b14a_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/aad177b9-5eab-4a50-b627-e533779e398c/e575d3c2-8c3c-4bf5-9b46-9ac304a60f9a_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/aboutcircles/circles-sdk",
+    "world_name": "Demurrage Gardens",
+    "genre": "solarpunk",
+    "tagline": "Where trust flows in circles and value blooms through connection",
+    "created_at": "2026-03-15T03:45:43.013Z",
+    "chapters": [
+      {
+        "title": "The First Seedling",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/2423a3c3-7588-4715-bbc2-a04cb1323dd4",
+        "pano_url": "https://cdn.marble.worldlabs.ai/2423a3c3-7588-4715-bbc2-a04cb1323dd4/5d0d89d6-24cc-4205-9150-757535b7d812_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/2423a3c3-7588-4715-bbc2-a04cb1323dd4/169a3d9e-e09d-4956-a90e-3cdb9d3f4dda_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Mycelial Networks",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/ed7468d9-6b00-4bd4-b6a9-17474b37ddd2",
+        "pano_url": "https://cdn.marble.worldlabs.ai/ed7468d9-6b00-4bd4-b6a9-17474b37ddd2/fbd98554-449d-4336-a54f-d685530f7b73_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/ed7468d9-6b00-4bd4-b6a9-17474b37ddd2/fb9b2040-4b20-499c-a20b-bd6f0b5948b7_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/omnilib/aiosqlite",
+    "world_name": "Amethyst Terminal",
+    "genre": "crystalline",
+    "tagline": "Where synchronous stone transforms into asynchronous crystal",
+    "created_at": "2026-03-15T03:39:52.875Z",
+    "chapters": [
+      {
+        "title": "The First Transmutation",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/e7eeebb1-e58b-4e79-9fc7-29239850048d",
+        "pano_url": "https://cdn.marble.worldlabs.ai/e7eeebb1-e58b-4e79-9fc7-29239850048d/6980ebd8-6753-4f13-8eba-1d47e849db47_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/e7eeebb1-e58b-4e79-9fc7-29239850048d/334654ad-c66d-42f8-9886-bf1bc570950d_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Bridging Stone and Crystal",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/38a314d4-cdad-4520-b133-f729592c57cc",
+        "pano_url": "https://cdn.marble.worldlabs.ai/38a314d4-cdad-4520-b133-f729592c57cc/3d3608ed-37dc-423c-bc07-a9c9940ad8bf_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/38a314d4-cdad-4520-b133-f729592c57cc/85480724-99a9-412a-990e-3525a63dc66b_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/whoabuddy/claude-rpg",
+    "world_name": "Moltbook Terminal",
+    "genre": "mythic",
+    "tagline": "Where every Claude session becomes a legendary companion, and every command forges destiny",
+    "created_at": "2026-03-15T03:32:32.748Z",
+    "chapters": [
+      {
+        "title": "The First Forge Ignites",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/39137104-c65e-40db-af28-f2ed9ad1ae47",
+        "pano_url": "https://cdn.marble.worldlabs.ai/39137104-c65e-40db-af28-f2ed9ad1ae47/c50c447c-cb32-44f9-a255-5a9cad40cc20_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/39137104-c65e-40db-af28-f2ed9ad1ae47/6fd9cf86-3fd3-40c7-b97e-83055a44841a_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/facebookincubator/later",
+    "world_name": "Laterfall",
+    "genre": "zen_garden",
+    "tagline": "Where asynchronous tasks shepherd themselves through the eternal deferral",
+    "created_at": "2026-03-15T03:25:48.207Z",
+    "chapters": [
+      {
+        "title": "The First Stone: Genesis of the Event Loop",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/b13a74b0-5f46-4abc-8d11-0421f3c51cb3",
+        "pano_url": "https://cdn.marble.worldlabs.ai/b13a74b0-5f46-4abc-8d11-0421f3c51cb3/857396df-4a89-4901-ab1f-57737bfcfb07_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/b13a74b0-5f46-4abc-8d11-0421f3c51cb3/dd16c4f7-186c-409c-bafb-ea00e40ad76d_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      },
+      {
+        "title": "Gathering the Coroutines: Building the Brotherhood",
+        "type": "growth",
+        "marble_url": "https://marble.worldlabs.ai/world/b0802587-4d48-4377-95ac-747b653cce4f",
+        "pano_url": "https://cdn.marble.worldlabs.ai/b0802587-4d48-4377-95ac-747b653cce4f/547c94e4-e698-4ebc-902a-a251cc7b362c_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/b0802587-4d48-4377-95ac-747b653cce4f/371741c0-f191-4383-8ae1-594a2156e095_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/r0zar/r0zar",
+    "world_name": "The Observatory of R0zar",
+    "genre": "aurora",
+    "tagline": "Where digital footprints become constellations in the endless night",
+    "created_at": "2026-03-15T03:22:43.882Z",
+    "chapters": [
+      {
+        "title": "The First Signal",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/ffd3362a-acaf-4e31-8dbf-f3dbd59b5369",
+        "pano_url": "https://cdn.marble.worldlabs.ai/ffd3362a-acaf-4e31-8dbf-f3dbd59b5369/a48238c7-42e4-47fa-81a3-63cbde8dc5ed_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/ffd3362a-acaf-4e31-8dbf-f3dbd59b5369/fba2c341-bbb1-429c-bfb9-9d2ba27b397f_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/Rapha-btc/clarity-webauthn",
+    "world_name": "Authenticarium",
+    "genre": "clockwork",
+    "tagline": "Where biometric keys unlock cryptographic vaults without intermediaries",
+    "created_at": "2026-03-15T03:21:20.011Z",
+    "chapters": [
+      {
+        "title": "The Broken Hash Wheel",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/e6c2b837-05de-490c-90ce-dc6bc185f5f6",
+        "pano_url": "https://cdn.marble.worldlabs.ai/e6c2b837-05de-490c-90ce-dc6bc185f5f6/b8c0a3e9-b0cf-42cd-b885-54ec398dc872_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/e6c2b837-05de-490c-90ce-dc6bc185f5f6/8020dc66-a83b-4021-9a81-21f3250047d9_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/human058382928/stacks-go",
+    "world_name": "Stacks Forge",
+    "genre": "steampunk",
+    "tagline": "Where cryptographic keys unlock the doors between digital realms",
+    "created_at": "2026-03-15T03:20:24.180Z",
+    "chapters": [
+      {
+        "title": "The First Spark: Genesis of the Forge",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/fbf75516-c4ff-4c02-a9ab-6c60e6258f96",
+        "pano_url": "https://cdn.marble.worldlabs.ai/fbf75516-c4ff-4c02-a9ab-6c60e6258f96/b73d8300-3ed6-4255-88d3-9506dec1aec2_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/fbf75516-c4ff-4c02-a9ab-6c60e6258f96/c709afa0-dbd9-4220-aa7c-a46fab7696a6_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/aibtcdev/agent-tools-ts",
+    "world_name": "Aixturum",
+    "genre": "clockwork",
+    "tagline": "Where autonomous agents orchestrate the dance of Bitcoin and Stacks through living DAOs",
+    "created_at": "2026-03-15T03:10:38.082Z",
+    "chapters": [
+      {
+        "title": "The First Foundry",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/03c855e2-a61a-4d18-9c87-56c9a1e263f6",
+        "pano_url": "https://cdn.marble.worldlabs.ai/03c855e2-a61a-4d18-9c87-56c9a1e263f6/8ede0c1c-6abe-4b34-b727-bc98d319b7bc_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/03c855e2-a61a-4d18-9c87-56c9a1e263f6/80e182ad-9ec4-41b6-9bc3-bfa8a5d02a8d_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "repo_url": "https://github.com/blackstar257/action-csvlint",
+    "world_name": "The Validation Sanctum",
+    "genre": "cathedral",
+    "tagline": "Where data finds its true form through sacred examination",
+    "created_at": "2026-03-15T03:05:59.434Z",
+    "chapters": [
+      {
+        "title": "The First Examination Chamber",
+        "type": "genesis",
+        "marble_url": "https://marble.worldlabs.ai/world/08cfcffd-03de-4d39-b9f6-dd38e9e79b97",
+        "pano_url": "https://cdn.marble.worldlabs.ai/08cfcffd-03de-4d39-b9f6-dd38e9e79b97/29bb6a6f-554c-4909-84d4-832ddfc3af2c_pano/rgb_0.png",
+        "thumbnail_url": "https://cdn.marble.worldlabs.ai/08cfcffd-03de-4d39-b9f6-dd38e9e79b97/6a5f0131-4798-4985-9c0c-9a69703791f6_sand_mpi/thumbnail.webp",
+        "status": "ready"
+      }
+    ]
+  },
+  {
     "repo_url": "https://github.com/gnosis/GECO",
     "world_name": "The Redistribution Gardens",
     "genre": "solarpunk",
@@ -86,23 +404,6 @@
         "marble_url": "https://marble.worldlabs.ai/world/dc4173c8-4f4c-4f80-b087-b46624cf767c",
         "pano_url": "https://cdn.marble.worldlabs.ai/dc4173c8-4f4c-4f80-b087-b46624cf767c/80fb92af-368c-448b-a84a-8e2f9c3053fd_pano/rgb_0.png",
         "thumbnail_url": "https://cdn.marble.worldlabs.ai/dc4173c8-4f4c-4f80-b087-b46624cf767c/9812c7f4-3961-4f1c-8525-8702e7947097_sand_mpi/thumbnail.webp",
-        "status": "ready"
-      }
-    ]
-  },
-  {
-    "repo_url": "https://github.com/facebookincubator/later",
-    "world_name": "Chronos Haven",
-    "genre": "clockwork",
-    "tagline": "Where time bends to serve the patient, and every promise finds its moment",
-    "created_at": "2026-03-15T01:38:12.192Z",
-    "chapters": [
-      {
-        "title": "The First Tick",
-        "type": "genesis",
-        "marble_url": "https://marble.worldlabs.ai/world/b145a945-412f-40d2-86ee-e4c1e58c66b8",
-        "pano_url": "https://cdn.marble.worldlabs.ai/b145a945-412f-40d2-86ee-e4c1e58c66b8/12166576-0e85-4c8e-bcc5-5756bdafe25c_pano/rgb_0.png",
-        "thumbnail_url": "https://cdn.marble.worldlabs.ai/b145a945-412f-40d2-86ee-e4c1e58c66b8/767e761b-a3a4-42b5-b231-feb626e9aa52_sand_mpi/thumbnail.webp",
         "status": "ready"
       }
     ]

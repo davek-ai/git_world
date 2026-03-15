@@ -192,6 +192,82 @@
       font-size: 11px; color: #444; line-height: 1.6;
     }
     #controls-hint span { color: #666; }
+
+    /* ─── Constellation grid ─────────────────────────── */
+    #constellation {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(8px);
+      z-index: 90; display: none; overflow-y: auto;
+      padding: 60px 40px;
+    }
+    #constellation.show { display: block; }
+    .const-header {
+      text-align: center; margin-bottom: 40px;
+    }
+    .const-header img {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15); margin-bottom: 12px;
+    }
+    .const-header h2 { font-size: 24px; letter-spacing: 2px; margin-bottom: 4px; }
+    .const-header .const-bio { color: #888; font-size: 13px; margin-bottom: 8px; }
+    .const-header .const-stats { color: #555; font-size: 12px; }
+    .const-close {
+      position: fixed; top: 20px; right: 24px; z-index: 95;
+      background: none; border: none; color: #666; font-size: 28px; cursor: pointer;
+    }
+    .const-close:hover { color: #fff; }
+    .const-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px; max-width: 1200px; margin: 0 auto;
+    }
+    .const-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      padding: 0; cursor: pointer; transition: all 0.2s; overflow: hidden;
+    }
+    .const-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); transform: translateY(-2px); }
+    .const-card.generating { border-color: rgba(221,170,34,0.3); }
+    .const-card.ready { border-color: rgba(34,204,102,0.3); }
+    .const-thumb {
+      width: 100%; height: 160px; object-fit: cover; display: block;
+      background: rgba(255,255,255,0.02);
+    }
+    .const-thumb-placeholder {
+      width: 100%; height: 160px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.02); color: #333; font-size: 12px;
+    }
+    .const-info { padding: 14px 16px; }
+    .const-world-name { font-size: 15px; font-weight: 600; color: #ddd; margin-bottom: 4px; }
+    .const-repo-name { font-size: 12px; color: #6688cc; margin-bottom: 4px; }
+    .const-desc { font-size: 11px; color: #666; margin-bottom: 6px; line-height: 1.4;
+      overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .const-meta { font-size: 11px; color: #555; display: flex; gap: 10px; }
+    .const-genre-tag {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+      padding: 2px 8px; border-radius: 2px; display: inline-block; margin-top: 6px;
+    }
+    .const-status { font-size: 11px; margin-top: 6px; }
+
+    .const-contributor {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+    }
+    .const-contributor img {
+      width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15);
+    }
+    .const-contributor .contrib-name { font-size: 13px; color: #aaa; }
+    .const-contributor .contrib-count { font-size: 11px; color: #555; }
+
+    /* ─── Explore preview in modal ────────────────────── */
+    #explore-preview {
+      margin-top: 16px; text-align: left; max-height: 200px; overflow-y: auto;
+      display: none;
+    }
+    #explore-preview.show { display: block; }
+    .explore-info { text-align: center; color: #888; font-size: 13px; margin-bottom: 10px; }
+    .explore-repo {
+      padding: 6px 12px; font-size: 12px; color: #999; display: flex; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .explore-repo .stars { color: #ddaa22; }
   </style>
 </head>
 <body>
@@ -227,8 +303,10 @@
 
   <div id="top-bar">
     <button id="btn-gallery" title="Previous worlds">Worlds</button>
+    <button id="btn-contributors" title="Explore contributor worlds" style="display:none">Contributors</button>
     <button id="btn-new-repo" title="Generate world for a new repo">+ New Repo</button>
     <a id="marble-link" target="_blank" rel="noopener" style="display:none">Marble 3D</a>
+    <button id="btn-vr" style="display:none" title="Enter VR">Enter VR</button>
   </div>
 
   <div id="gallery">
@@ -252,13 +330,20 @@
     <div id="tl-items"></div>
   </div>
 
+  <!-- Constellation grid (user/org view) -->
+  <div id="constellation">
+    <button class="const-close" id="const-close">&times;</button>
+    <div class="const-header" id="const-header"></div>
+    <div class="const-grid" id="const-grid"></div>
+  </div>
+
   <!-- Repo input modal (always accessible) -->
   <div id="repo-modal">
     <button class="close-btn" id="modal-close">&times;</button>
     <div id="repo-modal-inner">
       <h2>NEW WORLD</h2>
       <input id="repo-input" type="text" placeholder="paste a GitHub repo URL" autofocus />
-      <div class="modal-hint">e.g. https://github.com/owner/repo</div>
+      <div class="modal-hint">repo: github.com/owner/repo &nbsp;|&nbsp; user/org: github.com/owner</div>
       <div class="modal-row">
         <label>Chapters:</label>
         <div class="chapter-selector" id="chapter-selector">
@@ -278,6 +363,7 @@
           <button data-m="Marble 0.1-plus">Plus (high quality)</button>
         </div>
       </div>
+      <div id="explore-preview"></div>
       <div class="modal-status" id="modal-status"></div>
     </div>
   </div>
@@ -286,7 +372,8 @@
   {
     "imports": {
       "three": "https://esm.sh/three@0.170.0",
-      "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/"
+      "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/",
+      "@sparkjsdev/spark": "/spark.js"
     }
   }
   </script>
@@ -404,6 +491,39 @@
     controls.autoRotate = false;
     controls.autoRotateSpeed = 0.4;
 
+    // ─── WebXR support (Pico, Quest, etc.) ──────────
+    const btnVR = document.getElementById("btn-vr");
+
+    if ("xr" in navigator) {
+      navigator.xr.isSessionSupported("immersive-vr").then((supported) => {
+        if (supported) {
+          renderer.xr.enabled = true;
+          btnVR.style.display = "block";
+
+          let xrSession = null;
+          btnVR.addEventListener("click", async () => {
+            if (xrSession) {
+              xrSession.end();
+              return;
+            }
+            try {
+              xrSession = await navigator.xr.requestSession("immersive-vr", {
+                optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
+              });
+              renderer.xr.setSession(xrSession);
+              btnVR.textContent = "Exit VR";
+              xrSession.addEventListener("end", () => {
+                xrSession = null;
+                btnVR.textContent = "Enter VR";
+              });
+            } catch (err) {
+              console.warn("WebXR session failed:", err);
+            }
+          });
+        }
+      });
+    }
+
     // ─── WASD movement ──────────────────────────────
     const moveKeys = { w: false, a: false, s: false, d: false, q: false, e: false };
     const MOVE_SPEED = 0.2;
@@ -515,6 +635,147 @@
 
     createParticles();
 
+    // ─── Avatar sprites in 3D scene ──────────────────
+    // ─── Avatar system (DOM-based) ────────────────────
+    // Phase 1: Avatars scatter randomly, drifting with particles
+    // Phase 2: When world loads, they fly to a row above bottom-right menu
+    const avatarContainer = document.createElement("div");
+    avatarContainer.id = "avatar-container";
+    avatarContainer.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:15;";
+    document.body.appendChild(avatarContainer);
+
+    let avatarElements = [];
+    let avatarsDocked = false;
+    let avatarDockStartTime = 0;
+    const DOCK_DURATION = 2000; // ms for fly-to-dock animation
+
+    function clearAvatars() {
+      avatarContainer.innerHTML = "";
+      avatarElements = [];
+      avatarsDocked = false;
+    }
+
+    function addAvatar(avatarUrl, name, index, total) {
+      const el = document.createElement("a");
+      el.href = `https://github.com/${name}`;
+      el.target = "_blank";
+      el.rel = "noopener";
+      el.title = name;
+      // No CSS transition on left/top — we animate with JS for smooth drift
+      el.style.cssText = `
+        position: absolute; pointer-events: auto; cursor: pointer;
+        width: 40px; height: 40px; border-radius: 50%;
+        border: 2px solid rgba(102,136,204,0.5);
+        overflow: hidden; opacity: 0;
+        box-shadow: 0 0 12px rgba(102,136,204,0.2);
+        will-change: left, top, opacity;
+      `;
+      el.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;display:block;" crossorigin="anonymous" />`;
+
+      // Phase 1: random scattered position (avoid edges)
+      const margin = 80;
+      const startX = margin + Math.random() * (window.innerWidth - margin * 2);
+      const startY = margin + Math.random() * (window.innerHeight - margin * 2);
+      el.style.left = startX + "px";
+      el.style.top = startY + "px";
+      el._x = startX;
+      el._y = startY;
+      el._startX = startX;
+      el._startY = startY;
+      el._targetX = startX;
+      el._targetY = startY;
+      el._index = index;
+      el._total = total;
+      el._driftPhase = Math.random() * Math.PI * 2;
+      el._driftSpeed = 0.4 + Math.random() * 0.6;
+      el._driftRadiusX = 30 + Math.random() * 50;
+      el._driftRadiusY = 20 + Math.random() * 35;
+      el._docked = false;
+      el._dockT = 0;
+
+      el.addEventListener("mouseenter", () => {
+        el.style.border = "2px solid rgba(102,136,204,0.9)";
+        el.style.boxShadow = "0 0 20px rgba(102,136,204,0.5)";
+        el.style.width = "48px"; el.style.height = "48px";
+      });
+      el.addEventListener("mouseleave", () => {
+        el.style.border = "2px solid rgba(102,136,204,0.5)";
+        el.style.boxShadow = "0 0 12px rgba(102,136,204,0.2)";
+        el.style.width = "40px"; el.style.height = "40px";
+      });
+
+      avatarContainer.appendChild(el);
+      avatarElements.push(el);
+
+      // Staggered fade in
+      setTimeout(() => { el.style.opacity = "0.6"; }, 300 + index * 200);
+    }
+
+    function dockAvatars() {
+      if (avatarsDocked || avatarElements.length === 0) return;
+      avatarsDocked = true;
+      avatarDockStartTime = performance.now();
+
+      const total = avatarElements.length;
+      const bottomBar = document.getElementById("bottom-bar");
+      const barRect = bottomBar.getBoundingClientRect();
+
+      avatarElements.forEach((el, i) => {
+        // Target: row above bottom-right menu, right-aligned, 15px gap above
+        const targetX = barRect.right - (total - i) * 48;
+        const targetY = barRect.top - 55;
+        el._targetX = targetX;
+        el._targetY = targetY;
+        // Stagger start of dock animation
+        el._dockDelay = i * 150;
+      });
+    }
+
+    // Animate avatars every frame
+    function animateAvatars() {
+      if (avatarElements.length === 0) return;
+      const time = performance.now() * 0.001;
+      const now = performance.now();
+
+      for (const el of avatarElements) {
+        if (!avatarsDocked) {
+          // Phase 1: free drift — circular motion like particles
+          const dx = Math.sin(time * el._driftSpeed + el._driftPhase) * el._driftRadiusX;
+          const dy = Math.cos(time * el._driftSpeed * 0.7 + el._driftPhase + 1.3) * el._driftRadiusY;
+          el._x = el._startX + dx;
+          el._y = el._startY + dy;
+        } else {
+          // Phase 2: fly to dock position
+          const elapsed = now - avatarDockStartTime - el._dockDelay;
+          if (elapsed < 0) {
+            // Still waiting for stagger — keep drifting
+            const dx = Math.sin(time * el._driftSpeed + el._driftPhase) * el._driftRadiusX;
+            const dy = Math.cos(time * el._driftSpeed * 0.7 + el._driftPhase + 1.3) * el._driftRadiusY;
+            el._x = el._startX + dx;
+            el._y = el._startY + dy;
+          } else {
+            const t = Math.min(elapsed / DOCK_DURATION, 1);
+            // Smootherstep easing
+            const ease = t * t * t * (t * (t * 6 - 15) + 10);
+
+            // Lerp from current drift position to target
+            if (!el._dockFromX) {
+              el._dockFromX = el._x;
+              el._dockFromY = el._y;
+            }
+            el._x = el._dockFromX + (el._targetX - el._dockFromX) * ease;
+            el._y = el._dockFromY + (el._targetY - el._dockFromY) * ease;
+
+            // Brighten as it docks
+            el.style.opacity = 0.6 + ease * 0.4;
+          }
+        }
+
+        el.style.left = el._x + "px";
+        el.style.top = el._y + "px";
+      }
+    }
+
     // ─── Panorama loader ──────────────────────────────
     const textureLoader = new THREE.TextureLoader();
 
@@ -546,6 +807,93 @@
           resolve();
         }, undefined, reject);
       });
+    }
+
+    // ─── 3D Splat Loading (SparkJS) ─────────────────────
+    let sparkRenderer = null;
+    let currentSplat = null;
+    let sparkReady = false;
+    let viewMode = "pano"; // "pano" | "3d"
+
+    // Try loading SparkJS — non-blocking, viewer works without it
+    async function initSpark() {
+      try {
+        const spark = await import("@sparkjsdev/spark");
+        sparkRenderer = new spark.SparkRenderer({
+          enableLod: false,
+          renderOrder: -10,
+        });
+        scene.add(sparkRenderer);
+        sparkReady = true;
+        console.log("[spark] SparkJS initialized — 3D splat rendering available");
+      } catch (err) {
+        console.warn("[spark] SparkJS not available, pano-only mode:", err.message || err);
+      }
+    }
+    initSpark();
+
+    async function loadSplat(spzUrl) {
+      if (!sparkReady) {
+        console.warn("[spark] SparkJS not loaded, can't load splat");
+        return false;
+      }
+      try {
+        const spark = await import("@sparkjsdev/spark");
+
+        // Remove old splat
+        if (currentSplat) {
+          scene.remove(currentSplat);
+          if (currentSplat.dispose) currentSplat.dispose();
+          currentSplat = null;
+        }
+
+        currentSplat = new spark.SplatMesh({ url: spzUrl });
+
+        // Wait for init with timeout
+        await Promise.race([
+          currentSplat.initialized,
+          new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 45000)),
+        ]);
+
+        // WorldLabs Marble coordinate transform (from sensai-webxr)
+        currentSplat.scale.set(1.195, 1.195, 1.195);
+        currentSplat.rotation.x = Math.PI;
+        currentSplat.position.y = 1.054;
+        currentSplat.renderOrder = -10;
+        scene.add(currentSplat);
+
+        // Fly-in animation
+        const targetScale = currentSplat.scale.clone();
+        currentSplat.scale.set(0.01, 0.01, 0.01);
+        const animStart = performance.now();
+        function animateIn() {
+          const t = Math.min((performance.now() - animStart) / 1500, 1);
+          const ease = 1 - Math.pow(1 - t, 3);
+          currentSplat.scale.lerpVectors(new THREE.Vector3(0.01,0.01,0.01), targetScale, ease);
+          if (t < 1) requestAnimationFrame(animateIn);
+        }
+        animateIn();
+
+        // Hide pano when splat is loaded
+        if (panoMesh) panoMesh.visible = false;
+
+        viewMode = "3d";
+        console.log("[spark] Splat loaded:", spzUrl);
+        return true;
+      } catch (err) {
+        console.warn("[spark] Splat load failed:", err.message || err);
+        return false;
+      }
+    }
+
+    function disposeSplat() {
+      if (currentSplat) {
+        scene.remove(currentSplat);
+        if (currentSplat.dispose) currentSplat.dispose();
+        currentSplat = null;
+      }
+      viewMode = "pano";
+      if (panoMesh) panoMesh.visible = true;
     }
 
     // ─── Particle Systems ──────────────────────────────
@@ -933,10 +1281,17 @@
 
     evtSource.addEventListener("story_bible", (e) => {
       bible = JSON.parse(e.data);
-      onBibleReady();
+      // Track repo URL from bible identity
+      if (bible.repo_identity?.name) {
+        currentRepoUrl = `https://github.com/${bible.repo_identity.name}`;
+        showContributorsButton();
+      }
+      // Only do full intro in single-repo mode (not constellation)
+      if (!constellationEl.classList.contains("show")) {
+        onBibleReady();
+      }
       modalStatus.textContent = `"${bible.world_name}" — generating world...`;
       setGeneratingState("analyzing");
-      // Color sparks to match palette
       if (sparkParticles && bible.visual_palette) {
         const accent = parseInt(bible.visual_palette.accent.replace("#", ""), 16);
         sparkParticles.material.color.setHex(accent);
@@ -959,7 +1314,21 @@
       // Close modal if open
       repoModal.classList.remove("show");
       modalStatus.textContent = "";
-      fetchState().then(() => navigateToChapter(data.index));
+
+      // Update constellation card if in batch mode
+      if (constellationEl.classList.contains("show") && bible) {
+        updateConstellationCard(currentRepoUrl, {
+          world_name: bible.world_name,
+          tagline: bible.tagline,
+          genre: bible.genre,
+          thumbnail_url: data.card?.thumbnail_url,
+          pano_url: data.card?.pano_url || null,
+          marble_url: data.marble_url,
+          chapter_title: data.card?.episode_title,
+        });
+      } else {
+        fetchState().then(() => navigateToChapter(data.index));
+      }
     });
 
     evtSource.addEventListener("chapter_failed", (e) => {
@@ -971,6 +1340,15 @@
       modalStatus.style.color = "#dd4422";
     });
 
+    evtSource.addEventListener("world_update", (e) => {
+      const data = JSON.parse(e.data);
+      if (data.status === "batch_complete") {
+        setGeneratingState("idle");
+        hudStatus.textContent = `${data.count} worlds complete`;
+        hudStatus.className = "status status-ready";
+      }
+    });
+
     // ─── Fetch existing state ─────────────────────────
     async function fetchState() {
       try {
@@ -980,7 +1358,7 @@
           return;
         }
         const { state, bible: b } = await res.json();
-        if (state?.repo_url) { currentRepoUrl = state.repo_url; showRepoLink(currentRepoUrl); }
+        if (state?.repo_url) { currentRepoUrl = state.repo_url; showRepoLink(currentRepoUrl); showContributorsButton(); }
         if (b && !bible) { bible = b; onBibleReady(); }
         if (state?.chapters) {
           chapters = state.chapters;
@@ -1004,6 +1382,8 @@
       repoInput.value = "";
       modalStatus.textContent = "";
       modalStatus.style.color = "#ddaa22";
+      exploreData = null;
+      explorePreview.classList.remove("show");
       setTimeout(() => repoInput.focus(), 100);
     }
 
@@ -1069,6 +1449,7 @@
             item.style.cursor = "pointer";
             item.addEventListener("click", (e) => {
               if (e.target.tagName === "A") return; // Don't intercept marble links
+              clearAvatars();
               loadPanorama(firstReady.pano_url);
               hudName.textContent = entry.world_name;
               hudTagline.textContent = entry.tagline;
@@ -1104,24 +1485,140 @@
       }
     });
 
+    // ─── Smart URL detection ────────────────────────
+    function parseGitHubUrl(input) {
+      const cleaned = input.trim().replace(/\/$/, "");
+      const match = cleaned.match(/github\.com\/([^/]+)(\/([^/]+))?/);
+      if (!match) return null;
+      const owner = match[1];
+      const repo = match[3] || null;
+      return { owner, repo, isRepoUrl: !!repo };
+    }
+
+    // Explore preview state
+    const explorePreview = document.getElementById("explore-preview");
+    let exploreData = null; // { profile, repos }
+
     repoInput.addEventListener("keydown", async (e) => {
       if (e.key !== "Enter") return;
-      const url = repoInput.value.trim();
-      if (!url.includes("github.com/")) {
+      const parsed = parseGitHubUrl(repoInput.value);
+      if (!parsed) {
         modalStatus.textContent = "enter a valid GitHub URL";
         modalStatus.style.color = "#dd4422";
         return;
       }
 
-      modalStatus.textContent = "initializing...";
-      modalStatus.style.color = "#ddaa22";
+      if (parsed.isRepoUrl) {
+        // ─── Single repo mode (existing behavior) ────
+        const url = `https://github.com/${parsed.owner}/${parsed.repo}`;
+        modalStatus.textContent = "initializing...";
+        modalStatus.style.color = "#ddaa22";
+        explorePreview.classList.remove("show");
 
-      // Reset viewer state for new repo
+        resetViewerState();
+        introSub.textContent = "analyzing repository...";
+        introSub.classList.add("connecting");
+        setGeneratingState("analyzing");
+
+        try {
+          await fetch(`${apiBase}/api/watch`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ repo_url: url, chapter_count: selectedChapterCount, model: selectedModel }),
+          });
+        } catch (err) {
+          modalStatus.textContent = `error: ${err.message}`;
+          modalStatus.style.color = "#dd4422";
+        }
+      } else {
+        // ─── User/org explore mode ───────────────────
+        if (exploreData && exploreData.profile.login.toLowerCase() === parsed.owner.toLowerCase()) {
+          // Already previewed — generate now
+          launchBatchGeneration();
+        } else {
+          // Fetch repos for preview
+          modalStatus.textContent = "discovering repos...";
+          modalStatus.style.color = "#ddaa22";
+          try {
+            const res = await fetch(`${apiBase}/api/explore`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ owner: parsed.owner }),
+            });
+            exploreData = await res.json();
+            if (exploreData.error) {
+              modalStatus.textContent = exploreData.error;
+              modalStatus.style.color = "#dd4422";
+              return;
+            }
+            showExplorePreview();
+          } catch (err) {
+            modalStatus.textContent = `error: ${err.message}`;
+            modalStatus.style.color = "#dd4422";
+          }
+        }
+      }
+    });
+
+    function showExplorePreview() {
+      if (!exploreData) return;
+      const { profile, repos } = exploreData;
+      const topRepos = repos.slice(0, 15);
+
+      let html = `<div class="explore-info">
+        <strong>${profile.name || profile.login}</strong> — ${profile.type} — ${repos.length} public repos<br>
+        <span style="color:#666;font-size:11px">Select chapter count above, then press Enter to generate worlds for top repos</span>
+      </div>`;
+      for (const r of topRepos) {
+        html += `<div class="explore-repo">
+          <span>${r.name} <span style="color:#555">${r.language || ""}</span></span>
+          <span class="stars">${r.stars} ★</span>
+        </div>`;
+      }
+      explorePreview.innerHTML = html;
+      explorePreview.classList.add("show");
+      modalStatus.textContent = `Press Enter to generate worlds for top ${selectedChapterCount} repos`;
+      modalStatus.style.color = "#22cc66";
+    }
+
+    async function launchBatchGeneration() {
+      if (!exploreData) return;
+      const { profile, repos } = exploreData;
+      const count = Math.min(selectedChapterCount, repos.length);
+      const topRepos = repos.slice(0, count);
+      const repoUrls = topRepos.map(r => r.url);
+
+      // Close modal, show constellation
+      repoModal.classList.remove("show");
+      explorePreview.classList.remove("show");
+      resetViewerState();
+
+      // Show constellation grid
+      showConstellation(profile, topRepos);
+
+      // Start batch generation
+      modalStatus.textContent = "";
+      setGeneratingState("generating");
+
+      try {
+        await fetch(`${apiBase}/api/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repo_urls: repoUrls, model: selectedModel }),
+        });
+      } catch (err) {
+        console.error("Batch error:", err);
+      }
+    }
+
+    function resetViewerState() {
       bible = null;
       chapters = [];
       currentChapter = -1;
       stopPlayback();
       stopMusicPlayback();
+      clearAvatars();
+      disposeSplat();
       if (panoMesh) { scene.remove(panoMesh); panoMesh.geometry.dispose(); panoMesh.material.dispose(); panoMesh = null; }
       scene.background = new THREE.Color(0x050510);
       hudName.textContent = "";
@@ -1134,19 +1631,238 @@
       introOverlay.style.display = "flex";
       introOverlay.classList.remove("fade-out");
       introTitle.textContent = "NARRATIVE ENGINE";
-      introSub.textContent = "analyzing repository...";
-      introSub.classList.add("connecting");
-      setGeneratingState("analyzing");
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  CONSTELLATION VIEW — user/org world grid
+    // ═══════════════════════════════════════════════════
+    const constellationEl = document.getElementById("constellation");
+    const constHeader = document.getElementById("const-header");
+    const constGrid = document.getElementById("const-grid");
+    const constClose = document.getElementById("const-close");
+    let constellationWorlds = new Map(); // repo_url → { card element, status }
+    let constellationContributors = []; // all contributors for avatar loading
+
+    constClose.addEventListener("click", () => {
+      constellationEl.classList.remove("show");
+    });
+
+    function showConstellation(profile, repos) {
+      // Fade intro
+      introOverlay.classList.add("fade-out");
+      setTimeout(() => introOverlay.style.display = "none", 1500);
+
+      // Header
+      constHeader.innerHTML = `
+        <img src="${profile.avatar_url}" alt="${profile.login}" />
+        <h2>${(profile.name || profile.login).toUpperCase()}</h2>
+        ${profile.bio ? `<div class="const-bio">${profile.bio}</div>` : ""}
+        <div class="const-stats">${profile.type} — ${profile.public_repos} public repos — generating ${repos.length} worlds</div>
+      `;
+
+      // Grid cards (placeholder state)
+      constGrid.innerHTML = "";
+      constellationWorlds.clear();
+
+      for (const repo of repos) {
+        const card = document.createElement("div");
+        card.className = "const-card generating";
+        card.innerHTML = `
+          <div class="const-thumb-placeholder">generating...</div>
+          <div class="const-info">
+            <div class="const-world-name">—</div>
+            <div class="const-repo-name">${repo.name}</div>
+            <div class="const-desc">${repo.description || ""}</div>
+            <div class="const-meta">
+              <span>${repo.language || "—"}</span>
+              <span>${repo.stars} ★</span>
+            </div>
+            <div class="const-status status-generating">generating...</div>
+          </div>
+        `;
+        constGrid.appendChild(card);
+        constellationWorlds.set(repo.url, { card, repo });
+      }
+
+      constellationEl.classList.add("show");
+    }
+
+    // Update constellation cards as worlds complete (via SSE)
+    function updateConstellationCard(repoUrl, worldData) {
+      // Find by matching repo URL in history
+      for (const [url, entry] of constellationWorlds) {
+        // Match by repo name since URLs might differ slightly
+        if (repoUrl && url.includes(repoUrl.split("/").pop())) {
+          const { card } = entry;
+          card.className = "const-card ready";
+
+          const thumb = worldData.thumbnail_url
+            ? `<img class="const-thumb" src="${worldData.thumbnail_url}" />`
+            : `<div class="const-thumb-placeholder">ready</div>`;
+
+          const genreColor = {
+            noir:"#8888aa", cyberpunk:"#00d4ff", solarpunk:"#44cc66", brutalist:"#888",
+            cathedral:"#aa88cc", clockwork:"#daa520", arctic:"#88ccff", volcanic:"#dd4422",
+            deep_sea:"#2266aa", zen_garden:"#66aa66", coral_reef:"#ff8866", mythic:"#cc8844",
+            art_deco:"#ddaa44", steampunk:"#cc8833", crystalline:"#aaccff", orbital:"#6688cc",
+            frontier:"#88aa44", biopunk:"#66cc88", floating_islands:"#88aadd", underground:"#886644",
+            aurora:"#88ddaa", desert_mirage:"#ddaa66", overgrown:"#669944", neon_bazaar:"#ff66aa",
+            ancient_ruins:"#aa8866", industrial:"#888888",
+          }[worldData.genre] || "#666";
+
+          card.querySelector(".const-info").innerHTML = `
+            <div class="const-world-name">${worldData.world_name || "—"}</div>
+            <div class="const-repo-name">${entry.repo.name}</div>
+            <div class="const-desc">${entry.repo.description || ""}</div>
+            <div class="const-meta">
+              <span>${entry.repo.language || "—"}</span>
+              <span>${entry.repo.stars} ★</span>
+            </div>
+            <div class="const-genre-tag" style="color:${genreColor};border:1px solid ${genreColor}40">${worldData.genre || ""}</div>
+            <div class="const-status status-ready">ready</div>
+          `;
+
+          // Replace placeholder with thumbnail
+          const thumbEl = card.querySelector(".const-thumb-placeholder");
+          if (thumbEl && worldData.thumbnail_url) {
+            const img = document.createElement("img");
+            img.className = "const-thumb";
+            img.src = worldData.thumbnail_url;
+            thumbEl.replaceWith(img);
+          }
+
+          // Click to enter world
+          card.onclick = () => {
+            constellationEl.classList.remove("show");
+            clearAvatars();
+            if (worldData.pano_url) loadPanorama(worldData.pano_url);
+            hudName.textContent = worldData.world_name || "";
+            hudTagline.textContent = worldData.tagline || "";
+            showRepoLink(url);
+            hudGenre.textContent = worldData.genre || "";
+            hudChapter.textContent = worldData.chapter_title || "";
+            currentGenre = worldData.genre || "orbital";
+            if (worldData.marble_url) {
+              marbleLink.href = worldData.marble_url;
+              marbleLink.style.display = "block";
+              marbleLink.textContent = "Marble 3D";
+            }
+
+            // Load all contributor avatars into the 3D scene
+            if (constellationContributors.length > 0) {
+              constellationContributors.forEach((c, i) => {
+                addAvatar(c.avatar_url, c.login, i, constellationContributors.length);
+              });
+            }
+          };
+
+          constellationWorlds.delete(url);
+          break;
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  CONTRIBUTORS — explore the people behind a repo
+    // ═══════════════════════════════════════════════════
+    const btnContributors = document.getElementById("btn-contributors");
+
+    // Show Contributors button when a single repo is loaded
+    function showContributorsButton() {
+      if (currentRepoUrl) btnContributors.style.display = "block";
+      else btnContributors.style.display = "none";
+    }
+
+    btnContributors.addEventListener("click", async () => {
+      if (!currentRepoUrl) return;
+
+      btnContributors.textContent = "Loading...";
+      btnContributors.disabled = true;
 
       try {
-        await fetch(`${apiBase}/api/watch`, {
+        const res = await fetch(`${apiBase}/api/contributors`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ repo_url: url, chapter_count: selectedChapterCount, model: selectedModel }),
+          body: JSON.stringify({ repo_url: currentRepoUrl, count: 8 }),
+        });
+        const { contributors, repo_url } = await res.json();
+
+        if (!contributors || contributors.length === 0) {
+          btnContributors.textContent = "No contributors found";
+          setTimeout(() => { btnContributors.textContent = "Contributors"; btnContributors.disabled = false; }, 2000);
+          return;
+        }
+
+        // Build contributor constellation
+        const repoName = repo_url.replace("https://github.com/", "");
+        const repos = contributors.map(c => ({
+          name: c.top_repo.name,
+          full_name: c.top_repo.full_name,
+          url: c.top_repo.url,
+          description: c.top_repo.description,
+          language: c.top_repo.language,
+          stars: c.top_repo.stars,
+          _contributor: c,
+        }));
+
+        // Stash all contributors for avatar loading
+        constellationContributors = contributors;
+
+        // Show constellation with contributor info
+        introOverlay.classList.add("fade-out");
+        setTimeout(() => introOverlay.style.display = "none", 1500);
+
+        constHeader.innerHTML = `
+          <h2>CONTRIBUTORS</h2>
+          <div class="const-bio">${repoName}</div>
+          <div class="const-stats">${contributors.length} contributors — generating worlds from their top projects</div>
+        `;
+
+        constGrid.innerHTML = "";
+        constellationWorlds.clear();
+
+        for (const repo of repos) {
+          const c = repo._contributor;
+          const card = document.createElement("div");
+          card.className = "const-card generating";
+          card.innerHTML = `
+            <div class="const-thumb-placeholder">generating...</div>
+            <div class="const-info">
+              <div class="const-contributor">
+                <img src="${c.avatar_url}" alt="${c.login}" />
+                <span class="contrib-name">${c.login}</span>
+                <span class="contrib-count">${c.contributions} commits</span>
+              </div>
+              <div class="const-world-name">—</div>
+              <div class="const-repo-name">${repo.name}</div>
+              <div class="const-desc">${repo.description || ""}</div>
+              <div class="const-meta">
+                <span>${repo.language || "—"}</span>
+                <span>${repo.stars} ★</span>
+              </div>
+              <div class="const-status status-generating">generating...</div>
+            </div>
+          `;
+          constGrid.appendChild(card);
+          constellationWorlds.set(repo.url, { card, repo });
+        }
+
+        constellationEl.classList.add("show");
+        setGeneratingState("generating");
+
+        // Launch batch generation
+        const repoUrls = repos.map(r => r.url);
+        await fetch(`${apiBase}/api/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repo_urls: repoUrls, model: selectedModel }),
         });
       } catch (err) {
-        modalStatus.textContent = `error: ${err.message}`;
-        modalStatus.style.color = "#dd4422";
+        console.error("Contributors error:", err);
+        btnContributors.textContent = "Error";
+      } finally {
+        btnContributors.textContent = "Contributors";
+        btnContributors.disabled = false;
       }
     });
 
@@ -1193,6 +1909,30 @@
         introOverlay.classList.add("fade-out");
         setTimeout(() => introOverlay.style.display = "none", 1500);
       }, 2500);
+
+      // Fetch contributors in background and add avatars to scene
+      if (currentRepoUrl && !constellationEl.classList.contains("show")) {
+        loadRepoAvatars(currentRepoUrl);
+      }
+    }
+
+    async function loadRepoAvatars(repoUrl) {
+      try {
+        const res = await fetch(`${apiBase}/api/contributors`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repo_url: repoUrl, count: 6 }),
+        });
+        const data = await res.json();
+        if (data.contributors && data.contributors.length > 0) {
+          clearAvatars();
+          data.contributors.forEach((c, i) => {
+            addAvatar(c.avatar_url, c.login, i, data.contributors.length);
+          });
+        }
+      } catch {
+        // Silent fail — avatars are optional
+      }
     }
 
     // ═══════════════════════════════════════════════════
@@ -1351,12 +2091,20 @@
         marbleLink.textContent = "Marble 3D";
       }
 
-      // Load panorama
-      if (ch.pano_url) {
+      // Try 3D splat first, fall back to panorama
+      disposeSplat();
+      let loaded3d = false;
+      if (ch.spz_url && sparkReady) {
+        loaded3d = await loadSplat(ch.spz_url);
+      }
+      if (!loaded3d && ch.pano_url) {
         try { await loadPanorama(ch.pano_url); } catch (err) { console.warn("Pano load failed:", err); }
       }
 
       buildTimeline();
+
+      // Dock floating avatars to HUD once world is visible
+      setTimeout(dockAvatars, 1000);
     }
 
     // ─── Playback progress bar update ─────────────────
@@ -1368,16 +2116,17 @@
       }
     }
 
-    // ─── Render loop ──────────────────────────────────
+    // ─── Render loop (setAnimationLoop for WebXR compat) ──
     function animate() {
-      requestAnimationFrame(animate);
       updateWASD();
       updateAutoFly();
       controls.update();
       animateParticles();
+      animateAvatars();
       updatePlaybackBar();
       renderer.render(scene, camera);
     }
+    renderer.setAnimationLoop(animate);
     animate();
 
     // ─── Resize ───────────────────────────────────────

@@ -102,8 +102,170 @@ export class GitHubAnalyzer {
   }
 
   /**
+   * List public repos for a user or org, sorted by stars.
+   */
+  async listRepos(
+    ownerOrUrl: string
+  ): Promise<Array<{
+    name: string;
+    full_name: string;
+    url: string;
+    description: string | null;
+    language: string | null;
+    stars: number;
+    forks: number;
+    updated_at: string;
+    topics: string[];
+  }>> {
+    // Extract owner from URL or use directly
+    const owner = ownerOrUrl
+      .replace(/https?:\/\/github\.com\//, "")
+      .replace(/\/$/, "")
+      .split("/")[0];
+
+    // Try as org first, fall back to user
+    let repos: any[] = [];
+    try {
+      const { data } = await this.octokit.rest.repos.listForOrg({
+        org: owner,
+        sort: "created",
+        direction: "desc",
+        per_page: 50,
+        type: "public" as any,
+      });
+      repos = data;
+    } catch {
+      // Not an org — try as user
+      const { data } = await this.octokit.rest.repos.listForUser({
+        username: owner,
+        sort: "updated",
+        direction: "desc",
+        per_page: 50,
+        type: "owner",
+      });
+      repos = data;
+    }
+
+    return repos
+      .filter((r: any) => !r.fork && !r.archived)
+      .sort((a: any, b: any) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
+      .map((r: any) => ({
+        name: r.name,
+        full_name: r.full_name,
+        url: r.html_url,
+        description: r.description,
+        language: r.language,
+        stars: r.stargazers_count,
+        forks: r.forks_count,
+        updated_at: r.updated_at,
+        topics: r.topics ?? [],
+      }));
+  }
+
+  /**
+   * Get profile info for a user or org.
+   */
+  async getProfile(
+    ownerOrUrl: string
+  ): Promise<{
+    login: string;
+    name: string | null;
+    type: "User" | "Organization";
+    avatar_url: string;
+    bio: string | null;
+    public_repos: number;
+  }> {
+    const owner = ownerOrUrl
+      .replace(/https?:\/\/github\.com\//, "")
+      .replace(/\/$/, "")
+      .split("/")[0];
+
+    const { data } = await this.octokit.rest.users.getByUsername({
+      username: owner,
+    });
+
+    return {
+      login: data.login,
+      name: data.name,
+      type: data.type as "User" | "Organization",
+      avatar_url: data.avatar_url,
+      bio: data.bio,
+      public_repos: data.public_repos,
+    };
+  }
+
+  /**
    * Get the latest commit SHA.
    */
+  /**
+   * Get top contributors for a repo with their top personal repo.
+   */
+  async getContributors(
+    repoUrl: string,
+    count = 10
+  ): Promise<Array<{
+    login: string;
+    avatar_url: string;
+    contributions: number;
+    top_repo: {
+      name: string;
+      full_name: string;
+      url: string;
+      description: string | null;
+      language: string | null;
+      stars: number;
+    } | null;
+  }>> {
+    const { owner, repo } = this.parseUrl(repoUrl);
+    const { data } = await this.octokit.rest.repos.listContributors({
+      owner,
+      repo,
+      per_page: count,
+    });
+
+    // For each contributor, find their most starred personal repo
+    const results = await Promise.all(
+      data
+        .filter((c: any) => c.type === "User" && c.login)
+        .slice(0, count)
+        .map(async (c: any) => {
+          let top_repo = null;
+          try {
+            const { data: repos } = await this.octokit.rest.repos.listForUser({
+              username: c.login,
+              sort: "updated",
+              direction: "desc",
+              per_page: 10,
+              type: "owner",
+            });
+            const best = repos
+              .filter((r: any) => !r.fork && !r.archived)
+              .sort((a: any, b: any) => (b.stargazers_count || 0) - (a.stargazers_count || 0))[0];
+            if (best) {
+              top_repo = {
+                name: best.name,
+                full_name: best.full_name,
+                url: best.html_url,
+                description: best.description,
+                language: best.language ?? null,
+                stars: best.stargazers_count ?? 0,
+              };
+            }
+          } catch {
+            // Private profile or rate limit
+          }
+          return {
+            login: c.login,
+            avatar_url: c.avatar_url,
+            contributions: c.contributions,
+            top_repo,
+          };
+        })
+    );
+
+    return results.filter((r) => r.top_repo !== null);
+  }
+
   async getLatestSha(repoUrl: string): Promise<string> {
     const { owner, repo } = this.parseUrl(repoUrl);
     const { data } = await this.octokit.rest.repos.listCommits({
